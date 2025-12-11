@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>BigResultHandler Architecture</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({ startOnLoad: true });
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+        }
+        .mermaid {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <h1>BigResultHandler - High-Level Architecture</h1>
+    
+    <div class="mermaid">
+graph TB
+    Producer[Result Producer]
+    
+    HeaderQ[Header Queue<br/>Small Messages]
+    PayloadQ[Payload Queue<br/>Big Messages 250MB]
+    NotificationQ[Notification Queue<br/>Complete Results]
+    
+    HeaderConsumer[Header Consumer]
+    PayloadConsumer[Payload Consumer]
+    Coordinator[Result Coordinator]
+    Storage[Temporary Storage<br/>Transaction Data]
+    Assembler[Result Assembler]
+    Notifier[Result Notifier]
+    
+    Consumer[Result Consumer]
+    
+    Producer -->|Header + TxID| HeaderQ
+    Producer -->|Payload Chunks + TxID<br/>250MB each| PayloadQ
+    
+    HeaderQ -->|Consume| HeaderConsumer
+    PayloadQ -->|Consume| PayloadConsumer
+    
+    HeaderConsumer -->|Store Header| Storage
+    PayloadConsumer -->|Store Payload Chunks| Storage
+    
+    HeaderConsumer --> Coordinator
+    PayloadConsumer --> Coordinator
+    
+    Coordinator -->|Check Completeness| Storage
+    Coordinator -->|All Parts Received| Assembler
+    
+    Assembler -->|Read Complete Data| Storage
+    Assembler -->|Assembled Result| Notifier
+    
+    Notifier -->|Publish Complete Result| NotificationQ
+    NotificationQ -->|Consume| Consumer
+    
+    Storage -.->|Cleanup| Storage
+
+    style HeaderConsumer fill:#a8d5e2
+    style PayloadConsumer fill:#a8d5e2
+    style Coordinator fill:#ffd4a3
+    style Assembler fill:#ffd4a3
+    style Notifier fill:#c5e1a5
+    style Storage fill:#e1bee7
+    </div>
+</body>
+</html>

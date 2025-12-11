@@ -1,0 +1,52 @@
+graph TD
+    NotificationQ[(Notification Queue<br/>Complete Results)]
+    AzureStorage[(Azure Storage<br/>Blob Container)]
+    KvStore[(KV Store<br/>Transaction Data)]
+    
+    subgraph ResultHandler["BigResultHandler StateMachine"]
+        HeaderConsumer[Header Consumer]
+        PayloadConsumer[Payload Consumer]
+        
+        subgraph State1["State 1: Awaiting Results"]
+            Handler[Result Handler<br/>Tracking Messages]
+        end
+        
+        subgraph State2["State 2: Sending Completion"]
+            Assembler[Result Assembler]
+            Notifier[Result Notifier]
+            Assembler --> Notifier
+        end
+        
+        HeaderConsumer --> Handler
+        PayloadConsumer --> Handler
+        Handler --> Assembler
+    end
+    
+    subgraph InputQueues[" "]
+        HeaderQ[(Header Queue<br/>Small Messages)]
+        PayloadQ[(Payload Queue<br/>250MB Messages)]
+    end
+    
+    Notifier -->|Publish Complete<br/>Results| NotificationQ
+    HeaderQ -->|Consume Headers<br/>with TxID| HeaderConsumer
+    PayloadQ -->|Consume Payload<br/>Chunks with TxID| PayloadConsumer
+    
+    Handler -->|Upload Blob| AzureStorage
+    AzureStorage -->|Return Blob URI| Handler
+    Handler -->|Write Metadata<br/>with Blob URI| KvStore
+    
+    KvStore -.-> Assembler
+
+    style HeaderConsumer fill:#a8d5e2
+    style PayloadConsumer fill:#a8d5e2
+    style Handler fill:#ffd4a3
+    style Assembler fill:#ffd4a3
+    style Notifier fill:#c5e1a5
+    style KvStore fill:#e1bee7
+    style AzureStorage fill:#b3d9ff
+    style ResultHandler fill:#f0f0f0,stroke:#333,stroke-width:3px
+    style State1 fill:#fff8dc,stroke:#ff9800,stroke-width:2px
+    style State2 fill:#e8f5e9,stroke:#4caf50,stroke-width:2px
+    style HeaderQ fill:#d4e6f1
+    style PayloadQ fill:#d4e6f1
+    style NotificationQ fill:#d5f4e6
