@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BigResultHandler - Interview Questions & Answers</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        
+        .intro {
+            background-color: #e8f4f8;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin-bottom: 30px;
+            border-radius: 4px;
+        }
+        
+        .question-container {
+            background-color: white;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .question {
+            padding: 15px 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            color: #2c3e50;
+            background-color: #fff;
+            border: none;
+            width: 100%;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+        
+        .question:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .question::after {
+            content: '▼';
+            font-size: 12px;
+            color: #3498db;
+            transition: transform 0.3s;
+        }
+        
+        .question.active::after {
+            transform: rotate(180deg);
+        }
+        
+        .answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            background-color: #fafafa;
+        }
+        
+        .answer.active {
+            max-height: 2000px;
+            transition: max-height 0.5s ease-in;
+        }
+        
+        .answer-content {
+            padding: 20px;
+            color: #555;
+        }
+        
+        .answer-content ul {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        
+        .answer-content li {
+            margin: 5px 0;
+        }
+        
+        .note {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        .implementation-note {
+            background-color: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 10px 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        .code-block {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        strong {
+            color: #2c3e50;
+        }
+        
+        .expand-all {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        
+        .expand-all:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <h1>BigResultHandler - Interview Questions & Answers</h1>
+    
+    <div class="intro">
+        This document addresses common questions that interviewers and reviewers may have about the BigResultHandler system design.
+    </div>
+    
+    <button class="expand-all" onclick="toggleAll()">Expand/Collapse All</button>
+    
+    <div class="question-container">
+        <button class="question" onclick="toggleAnswer(this)">
+            1. How is it handling crashes?
+        </button>
+        <div class="answer">
+            <div class="answer-content">
+                <p>The system uses a state machine architecture designed for crash recovery and process continuity. When a crash occurs:</p>
+                <ul>
+                    <li>The current state (either "Awaiting Results" or "Sending Completion") is persisted to durable storage</li>
+                    <li>Transaction progress including received message ordinals is stored</li>
+                    <li>Upon recovery, the process reads the persisted state</li>
+                    <li>Processing resumes from the last known state without data loss</li>
+                    <li>Partially received message series can continue from where they left off</li>
+                </ul>
+                <div class="implementation-note">
+                    <strong>Implementation detail:</strong> The specific persistence mechanism (KV Store, database, or dedicated state store) needs to be defined based on requirements for consistency, performance, and recovery time objectives.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="question-container">
+        <button class="question" onclick="toggleAnswer(this)">
+            2. How much data can it handle?
+        </button>
+        <div class="answer">
+            <div class="answer-content">
+                <p>The system is designed to handle unlimited result sizes:</p>
+                <ul>
+                    <li>Payload messages are chunked into 250MB segments in the Payload Queue</li>
+                    <li>Azure Blob Storage handles the final assembled data with no practical size limit</li>
+                    <li>Each message series can contain an arbitrary number of messages</li>
+                    <li>The KV Store only holds metadata and references (blob URIs), not the actual data</li>
+                    <li>Memory footprint remains constant regardless of total data size</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="question-container">
+        <button class="question" onclick="toggleAnswer(this)">
+            3. How is its memory management?
+        </button>
+        <div class="answer">
+            <div class="answer-content">
+                <p>The system employs streaming and reference-based architecture:</p>
+                <ul>
+                    <li>Messages are processed as they arrive, not held in memory</li>
+                    <li>Only metadata (Transaction ID, series type, ordinal IDs, counts) is kept in memory during processing</li>
+                    <li>Large payload data flows through to Azure Storage without full in-memory accumulation</li>
+                    <li>The KV Store reference pattern ensures only pointers (blob URIs) are stored, not full data</li>
+                    <li>Memory footprint per transaction is bounded by metadata size, not payload size</li>
+                </ul>
+                <div class="note">
+                    <strong>Note:</strong> Cleanup strategy for completed transactions (memory, KV Store, Azure Storage) needs to be defined based on retention requirements (see Question 7).
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="question-container">
+        <button class="question" onclick="toggleAnswer(this)">
+            4. How are messages arriving together handled?
+        </button>
+        <div class="answer">
+            <div class="answer-content">
+                <p>The system handles concurrent message arrival through:</p>
+                <ul>
+                    <li>Each message contains Transaction ID for proper routing</li>
+                    <li>Messages from different transactions are processed independently</li>
+                    <li>Within a transaction, messages can arrive in any order</li>
+                    <li>The Result Handler tracks ordinal IDs per series type</li>
+                    <li>Completion is determined by receiving all ordinals (1 to Total Count) regardless of arrival order</li>
+                </ul>
+                <div class="implementation-note">
+                    <strong>Implementation details needed:</strong> Concurrency control mechanisms, state transition atomicity guarantees, and locking strategies need to be defined.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="question-container">
+        <button class="question" onclick="toggleAnswer(this)">
+            5. What happens if the process is recovering twice from the same state?
+        </button>
+        <div class="answer">
+            <div class="answer-content">
+                <p>Idempotent recovery requires careful design:</p>
+                <ul>
+                    <li><strong>State 1 (Awaiting Results):</strong> Re-reading persisted tracking data allows continuing to wait for missing messages. Duplicate message handling needs to check received ordinals.</li>
+                    <li><strong>State 2 (Sending Completion):</strong> Need mechanisms to detect if notification was already sent.</li>
+                </ul>
+                <div class="implementation-note">
+                    <strong>Implementation details needed:</strong>
+                    <ul>
+                        <li>Completion flag/status tracking mechanism</li>
+                        <li>Azure Storage conditional write strategy</li>
+                        <li>Duplicate notification prevention approach</li>
+                        <li>Recovery timestamp tracking</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="question-container">
+        <button class="question" onclick="toggleAnswer(this)">
+            6. How is the data arranged in the KV store?
+        </button>
+        <div class="answer">
+            <div class="answer-content">
+                <p>The KV Store needs to track:</p>
+                <ul>
+                    <li>Transaction ID (primary key)</li>
+                    <li>State machine state (if persisted to KV Store)</li>
+                    <li>Header information defining expected series types</li>
+                    <li>Series tracking: which ordinals have been received per series type</li>
+                    <li>Blob URI reference after Azure upload</li>
+                    <li>Timestamps for timeout management</li>
+                </ul>
+                <p><strong>Example structure (to be defined):</strong></p>
+                <div class="code-block">Transaction_ID/
+  ├── header: { expected_series_types: [...] }
+  ├── series_tracking/
+  │     ├── series_type_1: { total_count: N, received_ordinals: [1,2,5,...] }
+  │     └── series_type_2: { total_count: M, received_ordinals: [1,3,...] }
+  ├── blob_uri: "https://storage.azure.com/..."
+  └── timestamps: { created, last_updated }</div>
+                <div class="note">
+                    <strong>Note:</strong> Actual schema depends on chosen KV Store technology and access patterns.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="question-container">
+        <button class="question" onclick="toggleAnswer(this)">
+            7. Who makes sure garbage is cleaned from KV and Azure? And in case a transaction is abandoned?
+        </button>
+        <div class="answer">
+            <div class="answer-content">
+                <p>Garbage collection strategy needs to be defined:</p>
+                
+                <p><strong>Normal Cleanup (to be designed):</strong></p>
+                <ul>
+                    <li>Trigger: After successful notification</li>
+                    <li>What to clean: KV Store entries, temporary data</li>
+                    <li>Azure blob retention policy needs definition</li>
+                    <li>Completed transaction metadata retention requirements</li>
+                </ul>
+                
+                <p><strong>Abandoned Transactions (to be designed):</strong></p>
+                <ul>
+                    <li>Detection mechanism: timeout-based or monitoring service</li>
+                    <li>Cleanup trigger and scheduling</li>
+                    <li>KV Store entry removal strategy</li>
+                    <li>Azure blob cleanup for partial uploads</li>
+                    <li>Alerting and logging requirements</li>
+                </ul>
+                
+                <div class="implementation-note">
+                    <strong>Key questions to answer:</strong>
+                    <ul>
+                        <li>When and how are completed transactions cleaned?</li>
+                        <li>Who is responsible for cleanup (Result Notifier, background service, lifecycle policies)?</li>
+                        <li>What is the retention period for completed vs. abandoned transactions?</li>
+                        <li>How are orphaned resources detected and cleaned?</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="question-container">
+        <button class="question" onclick="toggleAnswer(this)">
+            8. Does a transaction have a timeout?
+        </button>
+        <div class="answer">
+            <div class="answer-content">
+                <p>Transactions should have timeout mechanisms to prevent indefinite waiting:</p>
+                
+                <p><strong>Timeout types to consider:</strong></p>
+                <ul>
+                    <li><strong>Awaiting Results Timeout:</strong> Maximum time to wait for all expected messages</li>
+                    <li><strong>Sending Completion Timeout:</strong> Maximum time to complete upload and notification</li>
+                </ul>
+                
+                <div class="implementation-note">
+                    <strong>Implementation needs to define:</strong>
+                    <ul>
+                        <li>Timeout values (configurable per transaction type?)</li>
+                        <li>Where timeout tracking occurs</li>
+                        <li>Who monitors for timeout (background service, Result Handler itself)</li>
+                        <li>Actions on timeout: state changes, cleanup, notifications</li>
+                        <li>Whether timeouts allow retry or mark transaction as failed/abandoned</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="question-container">
+        <button class="question" onclick="toggleAnswer(this)">
+            9. How does the system handle duplicate messages?
+        </button>
+        <div class="answer">
+            <div class="answer-content">
+                <p>Duplicate handling leverages the ordinal ID design:</p>
+                <ul>
+                    <li>Each message has a unique ordinal ID within its series (as specified in architecture)</li>
+                    <li>The Result Handler can check if an ordinal has already been received</li>
+                </ul>
+                <div class="implementation-note">
+                    <strong>Implementation needs to define:</strong>
+                    <ul>
+                        <li>Where duplicate detection occurs (in-memory cache, KV Store lookup)</li>
+                        <li>What happens to duplicate messages (ignore, acknowledge, log)</li>
+                        <li>How to achieve exactly-once processing semantics</li>
+                        <li>Whether RabbitMQ acknowledgment strategy affects this</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="question-container">
+        <button class="question" onclick="toggleAnswer(this)">
+            10. What are the failure modes and recovery strategies?
+        </button>
+        <div class="answer">
+            <div class="answer-content">
+                <p>Key failure modes to consider:</p>
+                
+                <p><strong>Queue Consumer Failures:</strong></p>
+                <ul>
+                    <li>Messages remain in queue (RabbitMQ behavior)</li>
+                    <li>Recovery: Consumer re-initialization</li>
+                </ul>
+                
+                <p><strong>Result Handler Failures:</strong></p>
+                <ul>
+                    <li>State machine design enables recovery</li>
+                    <li>RabbitMQ message redelivery behavior applies</li>
+                </ul>
+                
+                <p><strong>Azure Storage Failures:</strong></p>
+                <ul>
+                    <li>Upload failures during State 2</li>
+                    <li>Need: retry strategy, error handling, operator alerts</li>
+                </ul>
+                
+                <p><strong>KV Store Failures:</strong></p>
+                <ul>
+                    <li>Cannot persist or read state/metadata</li>
+                    <li>Impacts crash recovery capability</li>
+                </ul>
+                
+                <div class="implementation-note">
+                    <strong>Implementation needs to define:</strong>
+                    <ul>
+                        <li>Retry policies for each failure type</li>
+                        <li>Fallback strategies</li>
+                        <li>Alerting and monitoring</li>
+                        <li>High availability requirements</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="question-container">
+        <button class="question" onclick="toggleAnswer(this)">
+            11. How does the system scale horizontally?
+        </button>
+        <div class="answer">
+            <div class="answer-content">
+                <p>Scaling considerations for the architecture:</p>
+                
+                <p><strong>Potential scaling approaches:</strong></p>
+                <ul>
+                    <li>Multiple Result Handler instances processing different transactions</li>
+                    <li>RabbitMQ consumer distribution across instances</li>
+                    <li>Consumers (Header/Payload) can potentially scale independently</li>
+                    <li>Azure Storage supports parallel operations</li>
+                </ul>
+                
+                <div class="implementation-note">
+                    <strong>Design challenges to address:</strong>
+                    <ul>
+                        <li>How to partition transactions across instances</li>
+                        <li>Ensuring single Result Handler processes each transaction (no split-brain)</li>
+                        <li>KV Store concurrent access patterns and locking strategy</li>
+                        <li>State machine state coordination across instances</li>
+                        <li>Message routing and Transaction ID affinity</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="question-container">
+        <button class="question" onclick="toggleAnswer(this)">
+            12. What monitoring and observability is needed?
+        </button>
+        <div class="answer">
+            <div class="answer-content">
+                <p>Key observability requirements:</p>
+                
+                <p><strong>Per Transaction Metrics:</strong></p>
+                <ul>
+                    <li>State transitions and current state</li>
+                    <li>Message counts and series completion progress</li>
+                    <li>Processing duration</li>
+                    <li>Transaction lifecycle timestamps</li>
+                </ul>
+                
+                <p><strong>System-wide Metrics:</strong></p>
+                <ul>
+                    <li>Active transactions count</li>
+                    <li>Throughput rates</li>
+                    <li>Error and timeout rates</li>
+                    <li>Queue depths</li>
+                </ul>
+                
+                <p><strong>Infrastructure Metrics:</strong></p>
+                <ul>
+                    <li>Memory usage per component</li>
+                    <li>KV Store latency and operation rates</li>
+                    <li>Azure Storage upload performance</li>
+                </ul>
+                
+                <div class="implementation-note">
+                    <strong>Operational Needs:</strong>
+                    <ul>
+                        <li>Alert conditions and thresholds</li>
+                        <li>Dashboard requirements</li>
+                        <li>Distributed tracing approach</li>
+                        <li>Log aggregation strategy</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="question-container">
+        <button class="question" onclick="toggleAnswer(this)">
+            13. How is ordering guaranteed within a message series?
+        </button>
+        <div class="answer">
+            <div class="answer-content">
+                <p>Ordering capabilities from the architecture:</p>
+                <ul>
+                    <li>Messages include ordinal IDs (1 to Total Count) per series</li>
+                    <li>Messages can arrive out of order</li>
+                    <li>Result Handler tracks which ordinals have been received</li>
+                </ul>
+                <div class="implementation-note">
+                    <strong>Implementation needs to define:</strong>
+                    <ul>
+                        <li>Whether ordering matters for processing</li>
+                        <li>If messages need to be buffered and reordered</li>
+                        <li>How to reconstruct order when needed (sort by ordinal)</li>
+                        <li>Whether Azure Storage upload requires ordering</li>
+                        <li>Memory management for out-of-order message buffering</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="question-container">
+        <button class="question" onclick="toggleAnswer(this)">
+            14. What happens if the header message arrives after payload messages?
+        </button>
+        <div class="answer">
+            <div class="answer-content">
+                <p>Late header arrival is a design consideration:</p>
+                
+                <p><strong>Scenario:</strong></p>
+                <ul>
+                    <li>Payload messages may arrive before the header</li>
+                    <li>Result Handler doesn't know which series to expect without the header</li>
+                </ul>
+                
+                <div class="implementation-note">
+                    <strong>Design needs to address:</strong>
+                    <ul>
+                        <li>Should early payload messages be buffered? Where (memory, KV Store)?</li>
+                        <li>What is the maximum buffer capacity?</li>
+                        <li>Is there a timeout for header arrival?</li>
+                        <li>What happens to orphaned payload messages without headers?</li>
+                        <li>Should there be a dead letter queue for unmatched payloads?</li>
+                    </ul>
+                </div>
+                <div class="note">
+                    <strong>Note:</strong> This depends on whether the system guarantees header-first delivery or must handle any arrival order.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="question-container">
+        <button class="question" onclick="toggleAnswer(this)">
+            15. How are errors communicated to upstream systems?
+        </button>
+        <div class="answer">
+            <div class="answer-content">
+                <p>Error communication requirements:</p>
+                
+                <p><strong>What needs to be communicated:</strong></p>
+                <ul>
+                    <li>Transaction ID</li>
+                    <li>Error type and details</li>
+                    <li>Failure stage (which state, which operation)</li>
+                    <li>Timestamp</li>
+                </ul>
+                
+                <div class="implementation-note">
+                    <strong>Communication mechanisms to define:</strong>
+                    <ul>
+                        <li>Error notification queue/topic</li>
+                        <li>Status query API for upstream systems</li>
+                        <li>Error persistence in KV Store</li>
+                        <li>Retry vs. terminal failure distinction</li>
+                        <li>Operator notification and dashboards</li>
+                    </ul>
+                </div>
+                <div class="note">
+                    <strong>Note:</strong> Error handling strategy needs to be defined based on upstream system integration requirements.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleAnswer(button) {
+            const answer = button.nextElementSibling;
+            const isActive = answer.classList.contains('active');
+            
+            // Toggle the clicked answer
+            if (isActive) {
+                answer.classList.remove('active');
+                button.classList.remove('active');
+            } else {
+                answer.classList.add('active');
+                button.classList.add('active');
+            }
+        }
+        
+        function toggleAll() {
+            const answers = document.querySelectorAll('.answer');
+            const questions = document.querySelectorAll('.question');
+            const anyExpanded = Array.from(answers).some(answer => answer.classList.contains('active'));
+            
+            answers.forEach((answer, index) => {
+                if (anyExpanded) {
+                    answer.classList.remove('active');
+                    questions[index].classList.remove('active');
+                } else {
+                    answer.classList.add('active');
+                    questions[index].classList.add('active');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
