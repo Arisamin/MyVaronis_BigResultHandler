@@ -2,9 +2,11 @@
 
 This document addresses common questions that interviewers and reviewers may have about the BigResultHandler system design.
 
-## 1. How is it handling crashes?
+---
 
-**Answer:**
+<details>
+<summary><h3>1. How is it handling crashes?</h3></summary>
+
 The system uses a state machine architecture designed for crash recovery and process continuity. When a crash occurs:
 - The current state (either "Awaiting Results" or "Sending Completion") is persisted to durable storage
 - Transaction progress including received message ordinals is stored
@@ -12,11 +14,13 @@ The system uses a state machine architecture designed for crash recovery and pro
 - Processing resumes from the last known state without data loss
 - Partially received message series can continue from where they left off
 
-**Implementation detail:** The specific persistence mechanism (KV Store, database, or dedicated state store) needs to be defined based on requirements for consistency, performance, and recovery time objectives.
+> **Implementation detail:** The specific persistence mechanism (KV Store, database, or dedicated state store) needs to be defined based on requirements for consistency, performance, and recovery time objectives.
 
-## 2. How much data can it handle?
+</details>
 
-**Answer:**
+<details>
+<summary><h3>2. How much data can it handle?</h3></summary>
+
 The system is designed to handle unlimited result sizes:
 - Payload messages are chunked into 250MB segments in the Payload Queue
 - Azure Blob Storage handles the final assembled data with no practical size limit
@@ -24,9 +28,11 @@ The system is designed to handle unlimited result sizes:
 - The KV Store only holds metadata and references (blob URIs), not the actual data
 - Memory footprint remains constant regardless of total data size
 
-## 3. How is its memory management?
+</details>
 
-**Answer:**
+<details>
+<summary><h3>3. How is its memory management?</h3></summary>
+
 The system employs streaming and reference-based architecture:
 - Messages are processed as they arrive, not held in memory
 - Only metadata (Transaction ID, series type, ordinal IDs, counts) is kept in memory during processing
@@ -34,11 +40,13 @@ The system employs streaming and reference-based architecture:
 - The KV Store reference pattern ensures only pointers (blob URIs) are stored, not full data
 - Memory footprint per transaction is bounded by metadata size, not payload size
 
-**Note:** Cleanup strategy for completed transactions (memory, KV Store, Azure Storage) needs to be defined based on retention requirements (see Question 7).
+> **Note:** Cleanup strategy for completed transactions (memory, KV Store, Azure Storage) needs to be defined based on retention requirements (see Question 7).
 
-## 4. How are messages arriving together handled?
+</details>
 
-**Answer:**
+<details>
+<summary><h3>4. How are messages arriving together handled?</h3></summary>
+
 The system handles concurrent message arrival through:
 - Each message contains Transaction ID for proper routing
 - Messages from different transactions are processed independently
@@ -46,24 +54,28 @@ The system handles concurrent message arrival through:
 - The Result Handler tracks ordinal IDs per series type
 - Completion is determined by receiving all ordinals (1 to Total Count) regardless of arrival order
 
-**Implementation details needed:** Concurrency control mechanisms, state transition atomicity guarantees, and locking strategies need to be defined.
+> **Implementation details needed:** Concurrency control mechanisms, state transition atomicity guarantees, and locking strategies need to be defined.
 
-## 5. What happens if the process is recovering twice from the same state?
+</details>
 
-**Answer:**
+<details>
+<summary><h3>5. What happens if the process is recovering twice from the same state?</h3></summary>
+
 Idempotent recovery requires careful design:
 - **State 1 (Awaiting Results):** Re-reading persisted tracking data allows continuing to wait for missing messages. Duplicate message handling needs to check received ordinals.
 - **State 2 (Sending Completion):** Need mechanisms to detect if notification was already sent.
 
-**Implementation details needed:** 
+**Implementation details needed:**
 - Completion flag/status tracking mechanism
 - Azure Storage conditional write strategy
 - Duplicate notification prevention approach
 - Recovery timestamp tracking
 
-## 6. How is the data arranged in the KV store?
+</details>
 
-**Answer:**
+<details>
+<summary><h3>6. How is the data arranged in the KV store?</h3></summary>
+
 The KV Store needs to track:
 - Transaction ID (primary key)
 - State machine state (if persisted to KV Store)
@@ -83,11 +95,13 @@ Transaction_ID/
   └── timestamps: { created, last_updated }
 ```
 
-**Note:** Actual schema depends on chosen KV Store technology and access patterns.
+> **Note:** Actual schema depends on chosen KV Store technology and access patterns.
 
-## 7. Who makes sure garbage is cleaned from KV and Azure? And in case a transaction is abandoned?
+</details>
 
-**Answer:**
+<details>
+<summary><h3>7. Who makes sure garbage is cleaned from KV and Azure? And in case a transaction is abandoned?</h3></summary>
+
 Garbage collection strategy needs to be defined:
 
 **Normal Cleanup (to be designed):**
@@ -109,9 +123,11 @@ Garbage collection strategy needs to be defined:
 - What is the retention period for completed vs. abandoned transactions?
 - How are orphaned resources detected and cleaned?
 
-## 8. Does a transaction have a timeout?
+</details>
 
-**Answer:**
+<details>
+<summary><h3>8. Does a transaction have a timeout?</h3></summary>
+
 Transactions should have timeout mechanisms to prevent indefinite waiting:
 
 **Timeout types to consider:**
@@ -125,9 +141,11 @@ Transactions should have timeout mechanisms to prevent indefinite waiting:
 - Actions on timeout: state changes, cleanup, notifications
 - Whether timeouts allow retry or mark transaction as failed/abandoned
 
-## 9. How does the system handle duplicate messages?
+</details>
 
-**Answer:**
+<details>
+<summary><h3>9. How does the system handle duplicate messages?</h3></summary>
+
 Duplicate handling leverages the ordinal ID design:
 - Each message has a unique ordinal ID within its series (as specified in architecture)
 - The Result Handler can check if an ordinal has already been received
@@ -138,9 +156,11 @@ Duplicate handling leverages the ordinal ID design:
 - How to achieve exactly-once processing semantics
 - Whether RabbitMQ acknowledgment strategy affects this
 
-## 10. What are the failure modes and recovery strategies?
+</details>
 
-**Answer:**
+<details>
+<summary><h3>10. What are the failure modes and recovery strategies?</h3></summary>
+
 Key failure modes to consider:
 
 **Queue Consumer Failures:**
@@ -165,9 +185,11 @@ Key failure modes to consider:
 - Alerting and monitoring
 - High availability requirements
 
-## 11. How does the system scale horizontally?
+</details>
 
-**Answer:**
+<details>
+<summary><h3>11. How does the system scale horizontally?</h3></summary>
+
 Scaling considerations for the architecture:
 
 **Potential scaling approaches:**
@@ -183,9 +205,11 @@ Scaling considerations for the architecture:
 - State machine state coordination across instances
 - Message routing and Transaction ID affinity
 
-## 12. What monitoring and observability is needed?
+</details>
 
-**Answer:**
+<details>
+<summary><h3>12. What monitoring and observability is needed?</h3></summary>
+
 Key observability requirements:
 
 **Per Transaction Metrics:**
@@ -211,9 +235,11 @@ Key observability requirements:
 - Distributed tracing approach
 - Log aggregation strategy
 
-## 13. How is ordering guaranteed within a message series?
+</details>
 
-**Answer:**
+<details>
+<summary><h3>13. How is ordering guaranteed within a message series?</h3></summary>
+
 Ordering capabilities from the architecture:
 - Messages include ordinal IDs (1 to Total Count) per series
 - Messages can arrive out of order
@@ -226,9 +252,11 @@ Ordering capabilities from the architecture:
 - Whether Azure Storage upload requires ordering
 - Memory management for out-of-order message buffering
 
-## 14. What happens if the header message arrives after payload messages?
+</details>
 
-**Answer:**
+<details>
+<summary><h3>14. What happens if the header message arrives after payload messages?</h3></summary>
+
 Late header arrival is a design consideration:
 
 **Scenario:**
@@ -242,11 +270,13 @@ Late header arrival is a design consideration:
 - What happens to orphaned payload messages without headers?
 - Should there be a dead letter queue for unmatched payloads?
 
-**Note:** This depends on whether the system guarantees header-first delivery or must handle any arrival order.
+> **Note:** This depends on whether the system guarantees header-first delivery or must handle any arrival order.
 
-## 15. How are errors communicated to upstream systems?
+</details>
 
-**Answer:**
+<details>
+<summary><h3>15. How are errors communicated to upstream systems?</h3></summary>
+
 Error communication requirements:
 
 **What needs to be communicated:**
@@ -262,4 +292,6 @@ Error communication requirements:
 - Retry vs. terminal failure distinction
 - Operator notification and dashboards
 
-**Note:** Error handling strategy needs to be defined based on upstream system integration requirements.
+> **Note:** Error handling strategy needs to be defined based on upstream system integration requirements.
+
+</details>
