@@ -32,6 +32,8 @@ This document addresses common questions that interviewers and reviewers may hav
 23. **How does this design handle backpressure?** - Throughput and load management challenges
 24. **What about data consistency across KV Store, Azure Storage, and Queue states?** - Distributed consistency concerns
 25. **Is the Transaction ID approach sufficient for distributed tracing?** - Observability and debugging adequacy
+26. **How is the Notification Queue organized - per-transaction or shared?** - Queue topology and notification delivery strategy
+27. **Does the design need to account for single vs. multiple clients/consumers?** - Client multiplicity impact on architecture
 
 ---
 
@@ -666,3 +668,149 @@ Challenge the observability design: **[Copilot answer]**
 - Is Transaction ID alone enough for operational visibility? **[Copilot answer]**
 
 </details>
+
+<details>
+<summary><h3>26. How is the Notification Queue organized - per-transaction or shared?</h3></summary>
+
+Challenge the notification queue architecture: **[Copilot answer]**
+
+**Context:** **[Copilot answer]**
+- We send one notification per transaction **[Copilot answer]**
+- Multiple transactions are processed concurrently **[Copilot answer]**
+- We don't know how many transactions are active at any given time **[Copilot answer]**
+- Consumers must be able to identify and retrieve their transaction results **[Copilot answer]**
+
+**Option 1: Single shared Notification Queue for all transactions** **[Copilot answer]**
+- All notifications published to one queue **[Copilot answer]**
+- Each consumer receives all notifications and filters by Transaction ID **[Copilot answer]**
+- Consumers discard irrelevant notifications **[Copilot answer]**
+- Simple infrastructure - one queue to manage **[Copilot answer]**
+
+**Pros:** **[Copilot answer]**
+- Minimal queue management overhead **[Copilot answer]**
+- Easy to add new transactions **[Copilot answer]**
+- Simple Result Notifier implementation **[Copilot answer]**
+- No need to know transaction count in advance **[Copilot answer]**
+
+**Cons:** **[Copilot answer]**
+- Consumers receive irrelevant messages **[Copilot answer]**
+- Potential security/privacy concerns **[Copilot answer]**
+- Network and processing overhead for filtering **[Copilot answer]**
+- Scalability bottleneck with many transactions **[Copilot answer]**
+
+**Option 2: Queue per transaction** **[Copilot answer]**
+- Each transaction gets its own temporary notification queue **[Copilot answer]**
+- Queue created when transaction starts **[Copilot answer]**
+- Queue deleted after notification consumed **[Copilot answer]**
+
+**Pros:** **[Copilot answer]**
+- Perfect isolation per transaction **[Copilot answer]**
+- Consumer knows exactly which queue to monitor **[Copilot answer]**
+- Automatic cleanup after transaction completes **[Copilot answer]**
+- **Natural fit: one notification per transaction = one queue per transaction** **[Copilot answer]**
+- No message filtering needed **[Copilot answer]**
+
+**Cons:** **[Copilot answer]**
+- Massive queue creation/deletion overhead **[Copilot answer]**
+- Consumer needs to know transaction ID in advance **[Copilot answer]**
+- Complex queue lifecycle orchestration **[Copilot answer]**
+- Infrastructure cost and management complexity **[Copilot answer]**
+
+**Option 3: Topic-based routing (RabbitMQ exchanges, Kafka topics)** **[Copilot answer]**
+- Notifications published to topic/exchange with Transaction ID as routing key **[Copilot answer]**
+- Consumers subscribe with filters (specific Transaction IDs) **[Copilot answer]**
+- Infrastructure handles routing logic **[Copilot answer]**
+
+**Pros:** **[Copilot answer]**
+- Flexible routing without queue proliferation **[Copilot answer]**
+- Pub/sub pattern naturally fits **[Copilot answer]**
+- Multiple consumers can subscribe to same transaction notifications if needed **[Copilot answer]**
+- Infrastructure-level filtering **[Copilot answer]**
+- **Consumers subscribe dynamically by Transaction ID** **[Copilot answer]**
+
+**Cons:** **[Copilot answer]**
+- Requires topic/exchange configuration **[Copilot answer]**
+- Clients must implement subscription logic **[Copilot answer]**
+- More complex than simple queue **[Copilot answer]**
+
+**Questions to answer:** **[Copilot answer]**
+- How many concurrent transactions are expected? **[Copilot answer]**
+- Do multiple consumers need the same transaction notification (broadcast)? **[Copilot answer]**
+- How is the Transaction ID communicated to the consumer initially? **[Copilot answer]**
+- What are the security/isolation requirements? **[Copilot answer]**
+- How do consumers discover which queue/topic to monitor for their transaction? **[Copilot answer]**
+- What happens if consumer is not listening when notification arrives? **[Copilot answer]**
+- **Given it's one notification per transaction, which architecture best fits?** **[Copilot answer]**
+
+</details>
+
+<details>
+<summary><h3>27. Does the design need to account for single vs. multiple clients/consumers?</h3></summary>
+
+Challenge whether client multiplicity matters to the design: **[Copilot answer]**
+
+**Scenario 1: Single client consuming all transactions** **[Copilot answer]**
+- One consumer responsible for all transaction results **[Copilot answer]**
+- Consumer processes notifications for all transactions sequentially or in parallel **[Copilot answer]**
+- Simple consumption model **[Copilot answer]**
+
+**Design implications:** **[Copilot answer]**
+- Shared Notification Queue works perfectly - no filtering needed if only one consumer **[Copilot answer]**
+- No need for routing keys, topics, or per-transaction queues **[Copilot answer]**
+- Consumer state management is centralized **[Copilot answer]**
+- Bottleneck: single consumer must handle all notification throughput **[Copilot answer]**
+
+**Scenario 2: Multiple clients, each consuming their own transactions** **[Copilot answer]**
+- Each consumer only cares about specific transactions **[Copilot answer]**
+- Consumers must filter or subscribe to relevant notifications **[Copilot answer]**
+- Security/isolation becomes important **[Copilot answer]**
+
+**Design implications:** **[Copilot answer]**
+- Shared queue requires consumer-side filtering (inefficient) **[Copilot answer]**
+- Topic-based routing or per-transaction queues make more sense **[Copilot answer]**
+- Need mechanism for consumers to identify "their" transactions **[Copilot answer]**
+- Parallel consumption across multiple clients improves throughput **[Copilot answer]**
+
+**Key design question:** **[Copilot answer]**
+- **Should BigResultHandler care about the client/consumer model?** **[Copilot answer]**
+
+**Option A: Design is agnostic to client count** **[Copilot answer]**
+- BigResultHandler only knows about transactions, not clients **[Copilot answer]**
+- Publishes notifications with Transaction ID **[Copilot answer]**
+- Client/consumer architecture is external concern **[Copilot answer]**
+- Simple, focused responsibility **[Copilot answer]**
+
+**Pros:** **[Copilot answer]**
+- Cleaner separation of concerns **[Copilot answer]**
+- BigResultHandler doesn't need client registry or routing logic **[Copilot answer]**
+- Flexible - works with any consumer model **[Copilot answer]**
+- Easier to test and reason about **[Copilot answer]**
+
+**Cons:** **[Copilot answer]**
+- May not optimize for specific consumption patterns **[Copilot answer]**
+- Pushes routing/filtering complexity to consumers or infrastructure **[Copilot answer]**
+
+**Option B: Design optimizes for multiple clients** **[Copilot answer]**
+- BigResultHandler aware of client assignments **[Copilot answer]**
+- Routes notifications to correct client queues/topics **[Copilot answer]**
+- Requires client-transaction mapping **[Copilot answer]**
+
+**Pros:** **[Copilot answer]**
+- Optimized notification delivery **[Copilot answer]**
+- Better isolation and security **[Copilot answer]**
+- No consumer-side filtering overhead **[Copilot answer]**
+
+**Cons:** **[Copilot answer]**
+- Increased complexity in BigResultHandler **[Copilot answer]**
+- Requires client registration and management **[Copilot answer]**
+- Tighter coupling between BigResultHandler and client infrastructure **[Copilot answer]**
+- What if client count or assignment changes? **[Copilot answer]**
+
+**Questions to answer:** **[Copilot answer]**
+- Is the consumer model a BigResultHandler concern or an external system concern? **[Copilot answer]**
+- Does the design need to be flexible enough to support both single and multiple consumers? **[Copilot answer]**
+- Where should the responsibility for routing notifications to the right consumer live? **[Copilot answer]**
+- What's the trade-off between BigResultHandler simplicity and notification delivery optimization? **[Copilot answer]**
+
+</details>
+
