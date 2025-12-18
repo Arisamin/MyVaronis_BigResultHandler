@@ -33,32 +33,79 @@ To view the diagram, open the `.mermaid` file in VS Code and use `Ctrl+Shift+P` 
   - **Total Count**: Total number of messages in the series
   - **Ordinal ID**: Sequential position of the message within its series
 - Determines series completion when all ordinal IDs (1 to Total Count) are received
-- Uploads every payload message data to Azure Storage as a blob
-- Receives blob URI from Azure Storage
-- Writes transaction metadata (including blob URI) to KV Store
+- **Uploads each payload message immediately to Azure Storage as a separate blob** (as messages arrive, one-by-one)
+- Receives blob URI from Azure Storage for each uploaded message
+- Writes to KV Store for each message:
+  - **Namespace**: `TransactionID`
+  - **Key**: `<SeriesType, Ordinal>`
+  - **Value**: `BlobURI`
+- Azure Storage is agnostic to series types and ordinals - it only stores raw data blobs
 
 ### 4. **Result Assembler**
-- Retrieves transaction metadata from KV Store
-- Constructs final result object
+- Retrieves all blob URIs for a transaction from KV Store by querying the Transaction ID namespace
+- Accesses KV Store namespace `TransactionID` and retrieves all key-value pairs:
+  - Each entry has key `<SeriesType, Ordinal>` and value `BlobURI`
+- Collects all tuples: `[(SeriesType, Ordinal, BlobURI), ...]`
+- Organizes the blob URI references by series type
+- Prepares structured metadata for the Result Notifier
+- Does not assemble actual data - only organizes the references to where data is stored
 
 ### 5. **Result Notifier**
-- Publishes complete result notification to Notification Queue
+- Receives organized blob URIs from Result Assembler
+- Publishes notification to Notification Queue containing:
+  - Transaction ID
+  - All blob URIs organized by series type and ordinal
+- Client receives notification and can:
+  - Access all pieces of every series type
+  - Sort them by ordinal within each series
+  - Retrieve actual data from Azure Storage using the blob URIs
+  - Restore the complete result by assembling data from all blobs
 
 ### 6. **KV Store (Key-Value Store)**
-- External storage system
-- Stores transaction metadata indexed by Transaction ID
-- Contains blob URI references to Azure Storage
-- Provides metadata for result assembly
+- External storage system with namespace support
+- Organized by Transaction ID namespaces
+- Data structure:
+  - **Namespace**: `TransactionID`
+  - **Key**: `<SeriesType, Ordinal>`
+  - **Value**: `BlobURI`
+- Each payload message creates one entry within the Transaction ID namespace
+- Result Assembler queries a Transaction ID namespace to retrieve all key-value pairs
+- Provides metadata for organizing blob URI references
 
 ### 7. **Azure Storage**
 - External blob storage
-- Stores complete assembled result data
-- Returns blob URI after successful upload
-- Enables handling of unlimited result sizes
+- Stores raw payload data from each message as separate blobs
+- **Completely agnostic to series types, ordinals, and transaction structure**
+- Simply stores data and returns blob URIs
+- All semantic meaning (which blob belongs to which series/ordinal) is maintained in KV Store
+- Enables handling of unlimited result sizes through separate blob storage per message
 
 ## State Machine
 
 The BigResultHandler operates as a state machine with two states:
+
+### **State Machine Implementation**
+
+The state machine is implemented using the **State Pattern** with the following design:
+
+- **State Handler Objects**: Each state is implemented as a separate handler object designed to handle state-specific logic
+  - `AwaitingResultsStateHandler`: Handles State 1 operations
+  - `SendingCompletionStateHandler`: Handles State 2 operations
+
+- **Context Object**: A context object is maintained throughout state transitions and is accessible from every state handler
+  - Contains the **Transaction ID** for identifying the transaction being processed
+  - Passed to each state handler when transitioning between states
+  - Provides continuity and state information across the state machine lifecycle
+
+- **Shared Resources**: Multiple state machine instances can exist in the process simultaneously to handle concurrent transactions
+  - **KV Store**: Shared among all state machine instances
+  - **Azure Storage**: Shared among all state machine instances
+  - Each state machine instance operates on its own transaction data using the unique Transaction ID from the context object
+
+- **Data Isolation**: State handlers interact with their relevant data in KV Store and Azure Storage by:
+  - Using the **Transaction ID** from the context object as the key
+  - Each transaction's data is isolated by its unique Transaction ID
+  - Multiple state machines can safely coexist without interference
 
 ### **State 1: Awaiting Results**
 - Component is waiting for all expected messages for a transaction
@@ -85,6 +132,7 @@ The state machine design enables:
 - **Crash Recovery**: If the process crashes, it can resume from the last persisted state
 - **Continuity**: Processing continues where it left off without data loss
 - **Reliability**: State is persisted to KV Store at key transition points
+- **Concurrency**: Multiple transactions can be processed simultaneously by different state machine instances
 
 ## Data Flow
 
@@ -94,14 +142,19 @@ The state machine design enables:
 4. **Payload Consumer** consumes payload messages and forwards to Result Handler (unaware of headers or coordination)
 5. **Result Handler** receives header and interprets which message type series to expect
 6. **Result Handler** receives payload messages from different series and enters **State 1: Awaiting Results**
-7. **Result Handler** coordinates the different message series using header as the binder
-8. **Result Handler** tracks completion of all message series specified in the header
-9. When all expected messages are received, **Result Handler** transitions to **State 2: Sending Completion Message**
-10. **Result Handler** uploads the complete result data to **Azure Storage** as a blob
-11. **Azure Storage** returns the blob URI to **Result Handler**
-12. **Result Handler** writes transaction metadata (including blob URI) to **KV Store**
-13. **Result Assembler** retrieves metadata from **KV Store** to construct final result object
-14. **Result Notifier** publishes notification to **Notification Queue** indicating result is ready
+7. For **each payload message received**, **Result Handler**:
+   - Immediately uploads the message data to **Azure Storage** as a separate blob
+   - Receives blob URI from **Azure Storage**
+   - Writes to **KV Store** in namespace `TransactionID` with key `<SeriesType, Ordinal>` and value `BlobURI`
+8. **Result Handler** coordinates the different message series using header as the binder
+9. **Result Handler** tracks completion of all message series specified in the header
+10. When all expected messages are received, **Result Handler** transitions to **State 2: Sending Completion Message**
+11. **Result Assembler** queries **KV Store** namespace `TransactionID` to retrieve all key-value pairs, forming tuples: `[(SeriesType, Ordinal, BlobURI), ...]`
+12. **Result Assembler** organizes blob URIs by series type and forwards to **Result Notifier**
+13. **Result Notifier** publishes notification to **Notification Queue** containing:
+    - Transaction ID
+    - All blob URIs organized by series type and ordinal
+14. **Client** receives notification and retrieves actual data from Azure Storage using the blob URIs
 
 ## Transaction ID Binding
 
