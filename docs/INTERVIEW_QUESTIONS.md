@@ -68,10 +68,14 @@ The system is designed to handle unlimited result sizes:
 
 The system employs streaming and reference-based architecture:
 - Messages are processed as they arrive, not held in memory
+- **Streaming uploads**: Payload data is streamed directly from RabbitMQ to Azure Storage using a fixed buffer (e.g., 4-8MB)
+  - Read chunk from RabbitMQ message stream → write to blob upload stream
+  - Memory usage = buffer size, NOT message size
+  - 250MB messages processed with same memory footprint as smaller messages
 - Only metadata (Transaction ID, series type, ordinal IDs, counts) is kept in memory during processing
-- Large payload data flows through to Azure Storage without full in-memory accumulation
+- Azure Block Blob API enables staged uploads: chunks uploaded as blocks, then committed as complete blob
 - The KV Store reference pattern ensures only pointers (blob URIs) are stored, not full data
-- Memory footprint per transaction is bounded by metadata size, not payload size
+- Memory footprint per transaction is bounded by metadata size + streaming buffer, not payload size
 
 > **Note:** Cleanup strategy for completed transactions (memory, KV Store, Azure Storage) needs to be defined based on retention requirements (see Question 7).
 

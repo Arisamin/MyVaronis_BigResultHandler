@@ -5,6 +5,10 @@ The BigResultHandler is a component that manages unlimited-size results by coord
 
 The component operates as a state machine with two states to enable recovery from crashes and continuation of processing from the last known state.
 
+**Note on Terminology:** Throughout this document, "KV Store" refers to **Azure Table Storage**, a NoSQL key-value store that organizes data using PartitionKey (TransactionID) and RowKey (composite key of SeriesType and Ordinal). This allows efficient querying of all entries within a transaction namespace.
+
+**Message Serialization:** All RabbitMQ messages (Header Queue, Payload Queue, and Notification Queue) use **Protocol Buffers (protobuf)** for serialization. The `.proto` schema definitions are shared across all participants in the flow, ensuring consistent message format and structure across producers and consumers.
+
 ## High-Level Architecture
 
 See the architecture diagram: [architecture.mermaid](architecture.mermaid)
@@ -79,6 +83,13 @@ To view the diagram, open the `.mermaid` file in VS Code and use `Ctrl+Shift+P` 
 - Simply stores data and returns blob URIs
 - All semantic meaning (which blob belongs to which series/ordinal) is maintained in KV Store
 - Enables handling of unlimited result sizes through separate blob storage per message
+
+**Streaming Upload Implementation:**
+- Payload data is streamed directly from RabbitMQ to Azure Blob Storage without loading the entire message into memory
+- Uses stream-based upload with fixed buffer size (e.g., 4-8MB)
+- Memory footprint remains constant regardless of message size (250MB messages use same memory as smaller messages)
+- Azure Block Blob API supports staged uploads: read chunk → upload as block → commit block list
+- This enables processing 250MB payload messages with minimal memory overhead
 
 ## State Machine
 
