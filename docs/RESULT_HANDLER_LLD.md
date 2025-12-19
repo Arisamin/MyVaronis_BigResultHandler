@@ -1,138 +1,127 @@
 # Result Handler - Low Level Design
 
-> **Note:** This document is Copilot-generated content based on high-level architecture discussions. A user-verified version will be created later.
+> **Note:** This document is partly Copilot-generated content based on high-level architecture discussions.
 
 ## Overview
-The Result Handler is responsible for receiving header and payload messages, tracking message series completion, uploading payload data to Azure Storage, and maintaining transaction state in KV Store (Azure Table Storage).
+This document provides the low-level design for the **ResultHandler** class, which handles message processing logic through callback methods.
+
+**ResultHandler** processes messages arriving from RabbitMQ queues by:
+- Registering callback methods (`HandleHeaderMessage` and `HandlePayloadMessage`) with queue consumers in its constructor
+- Processing header messages to initialize transaction contexts
+- Processing payload messages by streaming data to Azure Blob Storage and tracking completion
+- Notifying the state machine when all expected messages for a transaction have been received
+
+The entire message processing flow is managed through invocations of these two callback methods.
+
+For the overall system architecture including ResultService, ResultManager, and StateMachine, see ARCHITECTURE.md.
 
 ## Class Structure
 
 ### ResultHandler
-Main orchestrator class that coordinates message processing and state transitions.
+Handles message processing logic through callback methods registered with queue consumers.
 
-**Properties:**
-- `stateHandlers: Dictionary<StateType, IStateHandler>` - Map of state handlers
-- `currentState: StateType` - Current state of the handler
-- `context: TransactionContext` - Current transaction context
+**Dependencies (Injected via IOC):**
+- `headerQueueConsumer: IQueueConsumer` - Consumes messages from Header Queue
+- `payloadQueueConsumer: IQueueConsumer` - Consumes messages from Payload Queue
+- `storageService: IAzureStorageService` - Azure Blob Storage operations
+- `kvStoreService: IKVStoreService` - Azure Table Storage operations
 
-**Methods:**
-- `ProcessHeaderMessage(headerMessage: HeaderMessage): void` - Entry point for header messages
-- `ProcessPayloadMessage(payloadMessage: PayloadMessage): void` - Entry point for payload messages
-- `TransitionToState(newState: StateType): void` - State transition coordinator
-- `RecoverFromCrash(transactionId: string): void` - Restore state from KV Store after crash
+**Note:** The queue consumers (headerQueueConsumer and payloadQueueConsumer) are instantiated by ResultService when it creates the StateMachine and ResultHandler. The ResultHandler has no awareness of the StateMachine - it is injected INTO the state machine.
 
----
-
-### TransactionContext
-Context object maintained throughout state transitions, accessible by all state handlers.
-
-**Properties:**
-- `TransactionId: string` - Unique transaction identifier
-- `ExpectedSeriesTypes: List<string>` - Series types from header message
-- `SeriesTracker: Dictionary<string, SeriesInfo>` - Tracks completion per series type
-- `CurrentState: StateType` - Current state for persistence
-- `CreatedTimestamp: DateTime` - Transaction creation time for timeout tracking
-- `LastUpdateTimestamp: DateTime` - Last state update time
-
-**Methods:**
-- `IsComplete(): bool` - Check if all series are complete
-- `UpdateSeriesProgress(seriesType: string, ordinal: int, totalCount: int): void` - Update series tracking
-- `Persist(): void` - Save context to KV Store
-- `LoadFromKVStore(transactionId: string): TransactionContext` - Static method to restore context
-
----
-
-### SeriesInfo
-Tracks completion status for a single message series.
-
-**Properties:**
-- `SeriesType: string` - Type identifier for the series
-- `TotalCount: int` - Total messages expected in series
-- `ReceivedOrdinals: HashSet<int>` - Set of received message ordinals
-- `BlobMappings: Dictionary<int, string>` - Map ordinal to blob URI
+**Constructor:**
+```csharp
+public ResultHandler(
+    IQueueConsumer headerQueueConsumer,
+    IQueueConsumer payloadQueueConsumer,
+    IAzureStorageService storageService,
+    IKVStoreService kvStoreService)
+{
+    this.headerQueueConsumer = headerQueueConsumer;
+    this.payloadQueueConsumer = payloadQueueConsumer;
+    this.storageService = storageService;
+    this.kvStoreService = kvStoreService;
+    
+    // Register callback handlers with queue consumers
+    headerQueueConsumer.OnMessageReceived += HandleHeaderMessage;
+    payloadQueueConsumer.OnMessageReceived += HandlePayloadMessage;
+}
+```
 
 **Methods:**
-- `IsComplete(): bool` - Returns true when ReceivedOrdinals.Count == TotalCount
-- `AddOrdinal(ordinal: int, blobUri: string): bool` - Add ordinal and blob URI, returns false if duplicate
-- `GetMissingOrdinals(): List<int>` - Returns list of missing ordinals (1 to TotalCount)
-
----
-
-## State Handlers
-
-### IStateHandler Interface
-Common interface for all state handlers.
-
-**Methods:**
-- `HandleHeader(context: TransactionContext, headerMessage: HeaderMessage): StateType` - Process header message, return next state
-- `HandlePayload(context: TransactionContext, payloadMessage: PayloadMessage): StateType` - Process payload message, return next state
-- `OnEnter(context: TransactionContext): void` - Called when entering this state
-- `OnExit(context: TransactionContext): void` - Called when exiting this state
-
----
-
-### AwaitingResultsStateHandler
-Implements State 1: Awaiting Results
-
-**Methods:**
-- `HandleHeader(context, headerMessage): StateType`
-  - Initialize SeriesTracker with expected series types from header
-  - Set TotalCount to -1 (unknown until first payload of each series)
-  - Persist context to KV Store
-  - Return StateType.AwaitingResults
+- `HandleHeaderMessage(message: HeaderMessage): void`
+  - Callback invoked when header message arrives from Header Queue
+  - Deserializes header message (Protocol Buffers)
+  - Initializes transaction metadata in KV Store
   
-- `HandlePayload(context, payloadMessage): StateType`
-  - Upload payload data to Azure Storage
-  - Receive blob URI from storage service
-  - Update SeriesInfo for the message's series type:
-    - Set TotalCount if this is first message of series
-    - Add ordinal and blob URI to SeriesInfo
-    - Check for duplicates (ordinal already received)
-  - Write to KV Store:
-    - Namespace: TransactionId
-    - Key: `{SeriesType}:{Ordinal}`
-    - Value: BlobURI
-  - Check if all series are complete using context.IsComplete()
-  - If complete, persist context and return StateType.SendingCompletion
-  - Otherwise, persist context and return StateType.AwaitingResults
-
-- `OnEnter(context): void`
-  - Log state entry
-  - Record state entry timestamp for monitoring
-
-- `OnExit(context): void`
-  - Log state exit
-  - Record completion metrics (duration, message count)
+- `HandlePayloadMessage(message: PayloadMessage): void`
+  - Callback invoked when payload message arrives from Payload Queue
+  - Deserializes payload message metadata (Protocol Buffers)
+  - Streams payload data to Azure Blob Storage
+  - Writes blob mapping to KV Store (PartitionKey: TransactionID, RowKey: SeriesType:Ordinal)
 
 ---
 
-### SendingCompletionStateHandler
-Implements State 2: Sending Completion Message
-
-**Methods:**
-- `HandleHeader(context, headerMessage): StateType`
-  - Ignore header (transaction already complete)
-  - Log warning about late header arrival
-  - Return StateType.SendingCompletion
-
-- `HandlePayload(context, payloadMessage): StateType`
-  - Ignore payload (transaction already complete)
-  - Log warning about late payload arrival
-  - Return StateType.SendingCompletion
-
-- `OnEnter(context): void`
-  - Call Result Assembler to organize blob URIs
-  - Send completion notification to Notification Queue
-  - Mark transaction as complete in KV Store
-  - Log completion
-  - Trigger cleanup timer (if implemented)
-
-- `OnExit(context): void`
-  - Log state exit (should rarely exit this state)
+**Note:** TransactionContext and SeriesInfo are managed by the State Machine and State Handlers. See the State Machine documentation for details on these components.
 
 ---
 
-## Supporting Services
+## Implementation Details
+
+### HandleHeaderMessage Implementation
+```csharp
+private void HandleHeaderMessage(HeaderMessage message) {
+    Log.Info($"Received header message for transaction {message.TransactionId}");
+    
+    // Deserialize header message (Protocol Buffers)
+    var header = ProtoBuf.Serializer.Deserialize<HeaderMessageProto>(message.Body);
+    
+    // Write transaction metadata to KV Store
+    kvStoreService.WriteTransactionMetadata(
+        header.TransactionId,
+        header.SeriesTypes,
+        header.SeriesCounts);
+    
+    Log.Info($"Initialized transaction {header.TransactionId} with {header.SeriesTypes.Count} series types");
+}
+```
+
+### HandlePayloadMessage Implementation
+```csharp
+private void HandlePayloadMessage(PayloadMessage message) {
+    Log.Info($"Received payload message for transaction {message.TransactionId}, " +
+             $"series {message.SeriesType}, ordinal {message.Ordinal}");
+    
+    // Deserialize payload message metadata (Protocol Buffers)
+    var payload = ProtoBuf.Serializer.Deserialize<PayloadMessageProto>(message.Body);
+    
+    // Stream payload data to Azure Blob Storage
+    // Note: Streaming avoids loading full 250MB message into memory
+    string blobUri;
+    using (var dataStream = message.GetPayloadStream()) {
+        blobUri = storageService.UploadBlobStream(
+            payload.TransactionId, 
+            payload.SeriesType, 
+            payload.Ordinal, 
+            dataStream);
+    }
+    
+    Log.Info($"Uploaded blob for transaction {payload.TransactionId}, " +
+             $"series {payload.SeriesType}, ordinal {payload.Ordinal} -> {blobUri}");
+    
+    // Write blob mapping to KV Store
+    kvStoreService.WriteBlobMapping(
+        payload.TransactionId, 
+        payload.SeriesType, 
+        payload.Ordinal, 
+        blobUri);
+    
+    Log.Info($"Wrote blob mapping for transaction {payload.TransactionId}");
+}
+```
+
+---
+
+## Storage and Persistence Services
 
 ### AzureStorageService
 Handles blob upload operations with streaming support.
@@ -177,27 +166,25 @@ public string UploadBlobStream(string transactionId, string seriesType,
 ---
 
 ### KVStoreService
-Manages Azure Table Storage operations.
+Manages Azure Table Storage operations for ResultHandler.
 
 **Methods:**
+- `WriteTransactionMetadata(transactionId: string, seriesTypes: List<string>, seriesCounts: Dictionary<string, int>): void`
+  - PartitionKey: transactionId
+  - RowKey: `__metadata__` (special key for transaction metadata)
+  - Stores expected series types and counts
+  
 - `WriteBlobMapping(transactionId: string, seriesType: string, ordinal: int, blobUri: string): void`
   - PartitionKey: transactionId
   - RowKey: `{seriesType}:{ordinal}`
   - Stores blob URI as property
   
-- `WriteTransactionContext(context: TransactionContext): void`
-  - PartitionKey: transactionId
-  - RowKey: `__context__` (special key for context data)
-  - Stores serialized context (state, series tracker, timestamps)
-  
-- `LoadTransactionContext(transactionId: string): TransactionContext`
-  - Retrieves context from RowKey `__context__`
-  - Deserializes and returns TransactionContext
-  
 - `GetAllBlobMappings(transactionId: string): List<BlobMapping>`
   - Queries all entries with PartitionKey = transactionId
-  - Excludes `__context__` row
+  - Excludes metadata rows
   - Returns list of (SeriesType, Ordinal, BlobURI) tuples
+
+**Note:** Additional KV Store operations for transaction context tracking and series completion are managed by the State Machine. See State Machine documentation for details.
 
 ---
 
@@ -224,74 +211,81 @@ class PayloadMessage {
     Stream DataStream;  // Stream for streaming upload (not byte[] to avoid full load in memory)
     DateTime Timestamp;
 }
-}
+```
 ```
 
 ---
 
 ## Processing Flow
 
+### Transaction Initialization
+1. ResultService receives transaction trigger (e.g., header message arrives)
+2. ResultService instantiates StateMachine for the specific TransactionID
+   - Passes ResultHandler instance to StateMachine (ResultHandler injected into state handlers)
+3. ResultService instantiates ResultManager with StateMachine as dependency
+4. ResultService calls `resultManager.ProcessTransaction()`
+5. ResultManager calls `stateMachine.Run()`
+6. StateMachine begins in State 1 (AwaitingResults), awaiting messages
+
 ### Header Message Processing
-1. Header Consumer receives header from Header Queue
-2. Calls `ResultHandler.ProcessHeaderMessage(headerMessage)`
-3. ResultHandler delegates to current state handler
-4. AwaitingResultsStateHandler:
-   - Creates/updates TransactionContext
-   - Initializes SeriesTracker with expected series types
-   - Persists context to KV Store
-5. Returns to waiting for payload messages
+1. Header Consumer (instantiated by ResultService) receives header from Header Queue
+2. Header Consumer invokes registered callback: `HandleHeaderMessage(headerMessage)`
+3. ResultHandler.HandleHeaderMessage:
+   - Deserializes header message (Protocol Buffers)
+   - Writes transaction metadata to KV Store (expected series types and counts)
+   - Logs transaction initialization
+4. Returns (callback completes)
+5. Header Consumer continues listening for more messages
 
 ### Payload Message Processing
-1. Payload Consumer receives payload from Payload Queue
-2. Calls `ResultHandler.ProcessPayloadMessage(payloadMessage)`
-3. ResultHandler delegates to current state handler
-4. AwaitingResultsStateHandler:
-   - Calls AzureStorageService.UploadBlobStream(messageStream) → streams data to Azure Storage
-   - Streaming occurs with fixed buffer (4-8MB), not full message in memory
+1. Payload Consumer (instantiated by ResultService) receives payload from Payload Queue
+2. Payload Consumer invokes registered callback: `HandlePayloadMessage(payloadMessage)`
+3. ResultHandler.HandlePayloadMessage:
+   - Deserializes payload message metadata (Protocol Buffers)
+   - Streams payload data to Azure Blob Storage (using fixed 4-8MB buffer)
    - Receives blob URI after upload completes
-   - Updates SeriesInfo for the series type
-   - Calls KVStoreService.WriteBlobMapping()
-   - Checks if series is complete
-   - Checks if all series are complete
-   - If all complete:
-     - Persists context
-     - Transitions to SendingCompletionStateHandler
-   - Otherwise:
-     - Persists context
-     - Continues in AwaitingResults state
+   - Writes blob mapping to KV Store (PartitionKey: TransactionID, RowKey: SeriesType:Ordinal)
+   - Logs completion
+4. Returns (callback completes)
+5. Payload Consumer continues listening for more messages
+
+**Note:** Transaction and series completion tracking is handled by the State Machine and State Handlers, not by ResultHandler.
 
 ### Completion Processing
-1. ResultHandler transitions to SendingCompletionStateHandler
+1. StateMachine transitions to SendingCompletionStateHandler
 2. SendingCompletionStateHandler.OnEnter():
-   - Instantiates Result Assembler
-   - Result Assembler queries KV Store for all blob mappings
-   - Organizes URIs by series type
-   - Creates notification message with organized URIs
-   - Publishes to Notification Queue
-   - Updates transaction state in KV Store
+   - Calls `resultAssembler.AssembleBlobs(transactionId)` → queries KV Store for all blob mappings
+   - Result Assembler organizes URIs by series type and ordinal
+   - Receives organized blob data
+   - Calls `notificationSender.SendNotification(transactionId, organizedData)` → publishes to Notification Queue
+   - Marks transaction as complete in KV Store
 
 ### Crash Recovery
 1. Process restarts after crash
-2. Recovery manager scans KV Store for incomplete transactions
-3. For each transaction:
+2. ResultService recovery manager scans KV Store for incomplete transactions
+3. For each incomplete transaction:
    - Calls `TransactionContext.LoadFromKVStore(transactionId)`
-   - Instantiates ResultHandler with recovered context
+   - ResultService instantiates StateMachine for the recovered transaction (with ResultHandler injected into state handlers)
+   - ResultService instantiates ResultManager with the StateMachine
+   - StateMachine loads recovered context
    - Sets appropriate state handler based on context.CurrentState
-   - Resumes processing from last known state
+   - ResultManager calls `stateMachine.Run()` to resume processing from last known state
 
 ---
 
 ## Concurrency Considerations
 
 ### Multi-Instance Processing
-- Multiple ResultHandler instances can run concurrently
-- Each instance handles different transactions (isolated by TransactionId)
+- Multiple StateMachine instances run concurrently (one per transaction)
+- Each StateMachine is isolated by its TransactionID
+- ResultManager coordinates multiple StateMachine instances
+- Shared dependencies (KV Store, Azure Storage) injected via IOC are thread-safe
 - KV Store uses TransactionId as PartitionKey for isolation
 - Azure Storage uses TransactionId in blob path for isolation
 
 ### Thread Safety
-- ResultHandler instance is single-threaded per transaction
-- Multiple threads can process different transactions
+- Each StateMachine instance is single-threaded per transaction
+- Multiple StateMachine instances can process different transactions in parallel
 - KVStoreService uses optimistic concurrency (eTags) for updates
 - SeriesInfo.ReceivedOrdinals (HashSet) provides O(1) duplicate detection
 
