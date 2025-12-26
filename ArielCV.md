@@ -74,4 +74,16 @@ My group was responsible for enhancing and maintaining infrastructure and applic
 
 ## SKILLS
 
-C#, .Net, WCF, IIS, MS Test, TDD, Test Automation, Agile, Scrum, Windows and Sys Internals, Communication Protocols, Security concepts, Databases, SQL, Debugging, Instrumentation, Java
+**Languages & Frameworks:** C# (.NET Framework 4.x - 4.8, exposure to .NET 5/6 in later career stages), SQL, WPF
+
+**Cloud & Infrastructure:** Azure (ADX/Kusto, Table Storage, Blob Storage)
+
+**Data & Messaging:** MS SQL Server, RabbitMQ, Azure Service Bus
+
+**Development Practices:** TDD, Unit Testing (MS Test), Code Reviews, Agile/Scrum
+
+**CI/CD & Tools:** Azure DevOps (TFS), Git, Visual Studio, Build Automation, Pipeline Development
+
+**Technical Expertise:** Multi-threading, Performance Optimization, Debugging & Troubleshooting
+
+**Domain Knowledge:** Cyber Security, Windows Permissions, Security Vulnerability Detection
