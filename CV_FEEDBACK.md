@@ -1,6 +1,84 @@
 # CV Feedback - Ariel Samin
 
-## HR Recruiter's Perspective:
+**Last Updated:** December 26, 2025
+
+This document tracks feedback, concerns, and questions to address iteratively as we refine the CV and prepare supporting documentation.
+
+---
+
+## Latest Review (Post Event-Driven Architecture Update)
+
+### HR Recruiter Perspective
+
+**Positives:**
+- Career break explanation is honest and relatable
+- 5 years at Varonis shows stability and loyalty
+- Good tenure progression: 2 years → 1 year → 2 years → 5 years
+- Education from reputable Israeli university
+- Cyber security domain is hot right now
+- Modern skills section is well-organized and scannable
+
+**Red Flags:**
+- Still generic Varonis responsibilities - "worked on various services" is vague
+- Technologies line under Varonis contradicts skills section (lists Azure Service Bus in tech line, but skills show ADX/Kusto/Table/Blob)
+- NICE sections feel copy-pasted from job descriptions ("My group develops...", "My group developed...")
+- "Technical lead" title at NICE 2016-2017 but "Senior Developer" everywhere else - career regression?
+- Lots of buzzwords added (event-driven, stateful processing, crash recovery) but no concrete examples or achievements
+
+**Interview Questions to Prepare For:**
+1. "What specific crash recovery mechanism did you implement?"
+2. "Tell me about the event-driven architecture you worked with"
+3. "What does 'stateful processing' mean in your context?"
+
+### Technical Lead Perspective
+
+**Positives:**
+- Event-driven architecture, stateful processing, crash recovery - these are strong architectural concepts
+- Autofac shows understanding of IoC/DI patterns
+- Multi-threading experience
+- Azure cloud exposure
+
+**Concerns:**
+- **Buzzword inflation**: "event-driven, stateful processing, crash recovery" in one bullet point with zero context - screams keyword stuffing
+- **No depth**: What KIND of stateful processing? What was the crash recovery strategy? Checkpointing? Event sourcing? Idempotency?
+- **Technology mismatch**: Varonis tech line says "Azure Service Bus" but skills section shows ADX/Kusto/Table/Blob - keep consistent
+- **Still no achievements**: What problem did these mechanisms solve? What was the scale?
+- **NICE sections unchanged**: Still reads like job posting text, not actual work
+
+**Interview Questions to Prepare For:**
+1. "Walk me through a crash recovery scenario - how did your system handle it?"
+2. "What state did you track in your stateful processing, and where was it persisted?"
+3. "Why did you choose event-driven architecture over synchronous request-response?"
+4. "You list Autofac - describe your DI container configuration approach"
+
+**Bottom Line:** Better, but still superficial. Added good technical terms, but without context they feel like keyword stuffing. Need concrete answers prepared.
+
+---
+
+## TODO: CV Improvements
+
+### CRITICAL - Address Next:
+
+1. **Fix Varonis Technologies Line**
+   - Currently says: "Azure (Service Bus, Blob Storage)"
+   - Should say: "Azure (ADX/Kusto, Table Storage, Blob Storage)" (or similar - match skills section)
+   - Remove Azure Service Bus if not actually used
+
+2. **Add ONE Specific Achievement for Buzzwords**
+   - Pick one concrete example that demonstrates event-driven + stateful processing + crash recovery
+   - This is where BigResultHandler project could shine
+   - Format: "Designed and implemented [specific system] handling [scale/problem] using [pattern/technology]"
+
+3. **Condense/Rewrite NICE Sections**
+   - Remove "My group develops..." narrative style
+   - Make it about YOUR contributions, not team description
+   - Keep it brief - older roles matter less
+
+---
+
+## Original Review (Pre Event-Driven Update)
+
+### **HR Recruiter's Perspective:**
 
 ### **Positive Points:**
 ✓ **Clear progression** - Shows growth from Developer → Senior Developer  
@@ -15,12 +93,14 @@
    - CV ends at 2024, but it's now December 2025
    - **Question:** "What have you been doing for the past year?"
    - **Impact:** Major concern - extended unemployment raises questions
+   - **STATUS:** ✅ RESOLVED - Added career break entry explaining family health responsibilities
 
 2. **Vague Personal Statement**
    - "5 years of experience" is outdated (this was written in ~2017-2018)
    - "Moving to Java" - but no Java experience shown, and seems irrelevant now
    - **Question:** "Is this CV even updated? What are you actually looking for?"
    - **Impact:** Looks like you copy-pasted an old CV without updating
+   - **STATUS:** ✅ RESOLVED - Personal statement removed (modern best practice)
 
 3. **Generic Responsibilities at Varonis**
    - Most recent role (5 years!) has the least detail
@@ -28,6 +108,7 @@
    - "Maintained and fixed bugs" - sounds junior, not senior
    - **Question:** "What did you actually accomplish in 5 years?"
    - **Impact:** Can't assess your real contribution or level
+   - **STATUS:** ⚠️ PARTIALLY RESOLVED - Expanded with technical details, but still needs concrete achievement
 
 ---
 

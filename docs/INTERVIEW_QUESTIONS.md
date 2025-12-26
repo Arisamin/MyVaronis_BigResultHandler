@@ -2,7 +2,54 @@
 
 This document addresses common questions that interviewers and reviewers may have about the BigResultHandler system design.
 
-## Questions Summary
+---
+
+## CV-Driven Interview Questions (Must Prepare)
+
+These questions arise directly from buzzwords and claims in the CV. Must have concrete, detailed answers ready.
+
+### Event-Driven Architecture
+1. **"Tell me about the event-driven architecture you worked with"**
+   - Need: Concrete description of RabbitMQ message handling pattern
+   - Need: Why event-driven vs synchronous request-response
+   - Need: Benefits and challenges encountered
+
+2. **"How did you design the event flow in your system?"**
+   - Need: Message types (header, payload, completion)
+   - Need: Queue topology
+   - Need: Message routing and correlation
+
+### Stateful Processing
+3. **"What does 'stateful processing' mean in your context?"**
+   - Need: What state is tracked (TransactionContext, SeriesInfo)
+   - Need: Why state is needed (multi-message correlation)
+   - Need: State transitions and lifecycle
+
+4. **"What state did you track, and where was it persisted?"**
+   - Need: KV Store usage for state persistence
+   - Need: State schema and structure
+   - Need: Consistency guarantees
+
+### Crash Recovery
+5. **"Walk me through a crash recovery scenario - how did your system handle it?"**
+   - Need: Recovery process step-by-step
+   - Need: How state is restored from KV Store
+   - Need: How processing resumes without data loss or duplication
+
+6. **"What specific crash recovery mechanism did you implement?"**
+   - Need: StateMachine restoration from persisted state
+   - Need: Idempotency considerations
+   - Need: Partial transaction recovery
+
+### Autofac / Dependency Injection
+7. **"You list Autofac - describe your DI container configuration approach"**
+   - Need: How components are registered
+   - Need: Lifetime scopes used
+   - Need: Why Autofac over built-in .NET DI
+
+---
+
+## Design Questions Summary
 
 1. **How is it handling crashes?** - State machine persistence and recovery mechanisms
 2. **How much data can it handle?** - Unlimited size support through chunking and blob storage
