@@ -1,34 +1,33 @@
 # ARIEL SAMIN
 
-**Email:** I.samin@gmail.com  
-**Phone:** 054-7535758  
-**Location:** 11 Katzanelson st., Netanya, Israel
+**Senior C# Developer**
 
----
-
-## PERSONAL STATEMENT
-
-I am a senior C# developer with 5 years of experience in server side. Throughout my different positions I carried out tasks with varying aspects: technological, design, mentoring and customer facing.
-
-I am looking for new challenges in the field of server side development, but would also like to broaden my set of skills in more areas. Moving to Java is a change I will gladly embrace, and already preparing for in my free time.
+**Email:** ariel.samin@gmail.com  
+**Phone:** 054-7535758
 
 ---
 
 ## WORK EXPERIENCE
 
+### Personal & Professional Development
+*2024 - Present*
+
+Career break to manage family health responsibilities while pursuing interests in financial markets and trading. Now seeking to return to professional software development.
+
 ### Senior C# Developer
 **Varonis - Herzliya, Israel** | *2019 - 2024*
 
-Worked on cyber security products focused on automation of security processes, including fixing Windows permissions and detecting files with unnecessarily permissive protection. Developed and maintained server-side services in both on-premises and Azure SaaS environments.
+Developed cyber security automation services for enterprise customers, focusing on Windows permission management and security vulnerability detection.
 
 **Responsibilities:**
-- Developed new services and features for security automation products
-- Maintained and fixed bugs in existing flows and services
-- Designed and implemented data processing and transfer solutions between services and sources (databases, message queues)
-- Worked with multithreaded environments focusing on scale and performance optimization
-- Ensured best practices and testable code in C# and MS SQL based systems
+- Implemented scalable services for automated permission remediation and security vulnerability detection
+- Contributed to architecture discussions and technical design decisions
+- Conducted code reviews ensuring best practices, performance, and maintainability
+- Collaborated on multi-threaded data processing solutions for high-volume environments
+- Participated in SAAS transformation from on-premises to Azure cloud platform
+- Built WPF administration tools for security policy configuration
 
-**Technologies:** C#, MS SQL, Azure SaaS, Message Queues, Multithreading, Windows Permissions
+**Technologies:** C# (.NET Framework 4.x), Azure (Service Bus, Blob Storage), MS SQL Server, RabbitMQ, Multi-threading, WPF
 
 ### Senior C# Developer in the RTA Group
 **NICE - Raanana, Israel** | *Jan 2017 - 2019*
