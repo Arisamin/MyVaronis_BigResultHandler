@@ -20,7 +20,8 @@ Career break to manage family health responsibilities while pursuing interests i
 Developed cyber security automation services for enterprise customers, focusing on Windows permission management and security vulnerability detection.
 
 **Responsibilities:**
-- Implemented scalable services for automated permission remediation and security vulnerability detection
+- Worked on various services handling automated permission remediation and security vulnerability detection
+- Developed in multi-threaded, event-driven environments with stateful processing and crash recovery mechanisms
 - Contributed to architecture discussions and technical design decisions
 - Conducted code reviews ensuring best practices, performance, and maintainability
 - Collaborated on multi-threaded data processing solutions for high-volume environments
@@ -74,7 +75,7 @@ My group was responsible for enhancing and maintaining infrastructure and applic
 
 ## SKILLS
 
-**Languages & Frameworks:** C# (.NET Framework 4.x - 4.8, exposure to .NET 5/6 in later career stages), SQL, WPF
+**Languages & Frameworks:** C# (.NET Framework 4.x - 4.8, exposure to .NET 5/6 in later career stages), SQL, WPF, Autofac (IoC/DI)
 
 **Cloud & Infrastructure:** Azure (ADX/Kusto, Table Storage, Blob Storage)
 
@@ -84,6 +85,6 @@ My group was responsible for enhancing and maintaining infrastructure and applic
 
 **CI/CD & Tools:** Azure DevOps (TFS), Git, Visual Studio, Build Automation, Pipeline Development
 
-**Technical Expertise:** Multi-threading, Performance Optimization, Debugging & Troubleshooting
+**Technical Expertise:** Event-Driven Architecture, Multi-threading, Debugging & Troubleshooting
 
 **Domain Knowledge:** Cyber Security, Windows Permissions, Security Vulnerability Detection
