@@ -3,16 +3,47 @@
 > **Note:** This document is partly Copilot-generated content based on high-level architecture discussions.
 
 ## Overview
-This document provides the low-level design for the **StateMachine** and its related components (TransactionContext, State Handlers, and SeriesInfo) within the BigResultHandler system.
+This document provides the low-level design for the **StateMachine** (a generic state management library) and its configuration within the BigResultHandler system, including ResultService-specific context extensions (TransactionContext, SeriesInfo) and state handlers.
 
-The **StateMachine** is a per-transaction coordinator that:
-- Is instantiated by ResultManager for a specific TransactionID
-- Maintains TransactionContext throughout state transitions
-- Contains state handler objects (AwaitingResultsStateHandler, SendingCompletionStateHandler)
-- Processes messages and manages state transitions based on transaction progress
-- Enables crash recovery by persisting and restoring context
+The **StateMachine** is a generic, reusable state coordinator library that:
+- Manages state transitions and persistence
+- Maintains a Context object with generic ID, CurrentState, and timestamps
+- Supports state handlers implementing IStateHandler interface
+- Enables crash recovery through state persistence
+
+**ResultService's usage of StateMachine:**
+- Instantiates one StateMachine per TransactionID within a dedicated Autofac lifetime scope
+- Extends generic Context to TransactionContext with business-specific properties (SeriesInfo tracking)
+- Configures three states: Request Forwarding → Awaiting Results → Sending Completion
+- Implements custom state handlers for each state
 
 For the overall system architecture, see ARCHITECTURE.md.
+
+## Transaction Lifecycle & Component Instantiation
+
+### ResultService
+The entry point that manages transaction lifecycle:
+
+1. **Request Received**: External request arrives with TransactionID
+2. **Module Creation**: ResultService creates dedicated Autofac lifetime scope for this transaction
+3. **Module Build Phase**: Autofac instantiates components in dependency order:
+   - RabbitMQ queues (per-transaction: `transaction-{TransactionId}-header` and `transaction-{TransactionId}-payload`)
+   - Queue consumers (injected with references to transaction-specific queues)
+   - ResultHandler (receives queue consumer references)
+   - StateMachine (receives ResultHandler, starts in State 0: Request Forwarding)
+4. **Processing**: StateMachine progresses through states (0 → 1 → 2)
+5. **Cleanup**: When transaction completes, ResultService disposes the Autofac scope, destroying all components including queues
+
+### Crash Recovery
+On service startup, ResultService:
+1. Checks Database for "Recoverable Transactions" (in-progress transactions)
+2. For each TransactionID found, recreates the Autofac lifetime scope
+3. StateMachine is instantiated and restores state from Database
+4. Processing resumes from the persisted state (idempotent state handlers allow safe re-execution)
+
+For detailed crash recovery mechanisms, see CRASH_RECOVERY.md.
+
+---
 
 ## Class Structure
 
@@ -26,96 +57,114 @@ Per-transaction state coordinator instantiated for a specific TransactionID.
 - `kvStoreService: IKVStoreService` - Azure Table Storage operations for context persistence
 
 **Properties:**
-- `transactionId: string` - The specific transaction this StateMachine is processing
-- `context: TransactionContext` - Maintains state and tracking information
+- `id: string` - Generic identifier for this state machine instance (in ResultService, this is the TransactionID)
+- `context: Context` - Generic context object (extended to TransactionContext by ResultService)
 - `currentStateHandler: IStateHandler` - Current state handler instance
 - `stateHandlers: Dictionary<StateType, IStateHandler>` - Map of all state handlers
 
 **Constructor:**
 ```csharp
 public StateMachine(
-    string transactionId,
+    string id,
     ResultHandler resultHandler,
     ResultAssembler resultAssembler,
     NotificationSender notificationSender,
-    IKVStoreService kvStoreService)
+    IDatabaseService databaseService)
 {
-    this.transactionId = transactionId;
+    this.id = id; // In ResultService usage, this is the TransactionID
     this.resultHandler = resultHandler;
     this.resultAssembler = resultAssembler;
     this.notificationSender = notificationSender;
-    this.kvStoreService = kvStoreService;
+    this.databaseService = databaseService;
     
-    // Initialize context
-    this.context = new TransactionContext {
-        TransactionId = transactionId,
-        CurrentState = StateType.AwaitingResults,
-        CreatedTimestamp = DateTime.UtcNow,
-        LastUpdateTimestamp = DateTime.UtcNow
-    };
+    // Attempt to restore context from Database (crash recovery)
+    // ResultService uses LoadTransactionContext which returns extended TransactionContext
+    this.context = databaseService.LoadContext(id);
     
-    // Initialize state handlers
+    if (this.context == null) {
+        // New state machine instance - initialize context
+        // ResultService creates TransactionContext (extended Context)
+        this.context = new TransactionContext {
+            ID = id,
+            CurrentState = StateType.RequestForwarding,
+            CreatedTimestamp = DateTime.UtcNow,
+            LastUpdateTimestamp = DateTime.UtcNow,
+            // TransactionContext-specific properties initialized separately
+        };
+    }
+    
+    // Initialize state handlers (ResultService-specific handlers)
     this.stateHandlers = new Dictionary<StateType, IStateHandler> {
-        { StateType.AwaitingResults, new AwaitingResultsStateHandler(this, resultHandler, kvStoreService) },
-        { StateType.SendingCompletion, new SendingCompletionStateHandler(this, resultAssembler, notificationSender, kvStoreService) }
+        { StateType.RequestForwarding, new RequestForwardingStateHandler(producerClient) },
+        { StateType.AwaitingResults, new AwaitingResultsStateHandler(kvStoreService) },
+        { StateType.SendingCompletion, new SendingCompletionStateHandler(resultAssembler, notificationSender, kvStoreService) }
     };
     
-    // Set initial state
-    this.currentStateHandler = stateHandlers[StateType.AwaitingResults];
+    // Set current state based on context (for recovery scenarios)
+    this.currentStateHandler = stateHandlers[this.context.CurrentState];
 }
 ```
 
 **Methods:**
 - `Run(): void`
-  - Entry point called by ResultManager to start transaction processing
-  - Calls currentStateHandler.OnEnter() to begin processing
+  - Entry point called by ResultService to start/resume transaction processing
+  - Calls currentStateHandler.OnEnter() to begin processing from current state
   - State handlers drive the state machine through state transitions
+  - Idempotent: Safe to call multiple times (crash recovery scenario)
   
 - `TransitionToState(newState: StateType): void`
   - Called by state handlers to transition to a new state
   - Calls currentStateHandler.OnExit()
   - Updates context.CurrentState
   - Updates currentStateHandler to new state handler
-  - Persists context to KV Store
+  - Persists context to Database
   - Calls newStateHandler.OnEnter()
   
 - `PersistContext(): void`
-  - Saves TransactionContext to KV Store
+  - Saves TransactionContext to Database
   - Updates LastUpdateTimestamp
+  - Marks transaction as "Recoverable" (in-progress)
   - Enables crash recovery
 
 **Crash Recovery:**
-```csharp
-public static StateMachine Restore(string transactionId, IKVStoreService kvStoreService, /* other dependencies */) {
-    // Load context from KV Store
-    var context = kvStoreService.LoadTransactionContext(transactionId);
-    
-    // Create StateMachine instance
-    var stateMachine = new StateMachine(transactionId, /* dependencies */);
-    
-    // Restore context
-    stateMachine.context = context;
-    
-    // Set current state handler based on context.CurrentState
-    stateMachine.currentStateHandler = stateMachine.stateHandlers[context.CurrentState];
-    
-    return stateMachine;
-}
-```
+The StateMachine constructor automatically handles crash recovery:
+1. Attempts to load TransactionContext from Database using TransactionID
+2. If found, restores the context (including CurrentState)
+3. Sets currentStateHandler based on restored state
+4. When Run() is called, processing resumes from the persisted state
+5. State handlers are idempotent, allowing safe re-execution from any state
+
+No separate Restore() method needed - recovery is built into constructor.
 
 ---
 
-### TransactionContext
-Context object maintained throughout state transitions, accessible by all state handlers.
+## Context Objects
+
+### Context (Generic StateMachine Context)
+The base context object used by the generic StateMachine library.
 
 **Properties:**
-- `TransactionId: string` - Unique transaction identifier
+- `ID: string` - Generic identifier for this state machine instance
+- `CurrentState: StateType` - Current state enum value
+- `CreatedTimestamp: DateTime` - When state machine was created
+- `LastUpdateTimestamp: DateTime` - Last state update time
+
+**Methods:**
+- `Serialize(): string` - Serialize context for persistence
+- `Deserialize(data: string): Context` - Static method to deserialize from storage
+
+---
+
+### TransactionContext (ResultService Extension)
+ResultService-specific extension of the generic Context, adding business logic properties for tracking multi-part message series.
+
+**Inheritance:** `TransactionContext : Context`
+
+**Additional Properties:**
+- `TransactionId: string` - Business identifier (typically same as ID, but semantically different)
 - `ExpectedSeriesTypes: List<string>` - Series types from header message
 - `ExpectedCounts: Dictionary<string, int>` - Expected message count per series type
 - `SeriesTracker: Dictionary<string, SeriesInfo>` - Tracks completion per series type
-- `CurrentState: StateType` - Current state for persistence
-- `CreatedTimestamp: DateTime` - Transaction creation time for timeout tracking
-- `LastUpdateTimestamp: DateTime` - Last state update time
 
 **Methods:**
 - `IsComplete(): bool` - Check if all series are complete
@@ -224,25 +273,99 @@ public interface IStateHandler {
 }
 ```
 
+**Idempotency Requirement:**
+All state handlers must be idempotent - they can be safely re-executed from the beginning if a crash occurs. This is achieved through:
+- Checking existing state before performing actions
+- Using transactional operations where possible
+- Leveraging KV Store and Database for deduplication
+
 ---
 
-### AwaitingResultsStateHandler
-Handles State 1: Awaiting all expected messages for the transaction.
+### RequestForwardingStateHandler
+Handles State 0: Forwarding processing request to Producer.
+
+> **Note:** This state is not the primary focus of the BigResultHandler design. It handles communication with external Producer service.
+
+**Responsibilities:**
+1. Send processing request to Producer with TransactionID and queue names
+2. State handler completes (StateMachine automatically transitions to AwaitingResults)
 
 **Dependencies:**
-- `stateMachine: StateMachine` - Parent state machine (for context access and state transitions)
-- `resultHandler: ResultHandler` - For checking completion status via KV Store queries
-- `kvStoreService: IKVStoreService` - For loading transaction metadata and querying blob mappings
+- `producerClient: IProducerClient` - Interface for sending requests to Producer service
 
 **Constructor:**
 ```csharp
-public AwaitingResultsStateHandler(
-    StateMachine stateMachine,
-    ResultHandler resultHandler,
-    IKVStoreService kvStoreService)
+public RequestForwardingStateHandler(IProducerClient producerClient)
 {
-    this.stateMachine = stateMachine;
-    this.resultHandler = resultHandler;
+    this.producerClient = producerClient;
+}
+```
+
+**Methods:**
+
+- `OnEnter(): void`
+  ```csharp
+  public void OnEnter() {
+      Log.Info($"Entering RequestForwarding state for transaction {context.TransactionId}");
+      
+      // Queues are already created by Autofac during module build phase
+      // Queue names are deterministic: transaction-{TransactionId}-header and -payload
+      
+      // Send request to Producer service to begin processing
+      // (Producer will publish results to the transaction-specific queues)
+      var request = new ProcessRequest {
+          TransactionId = context.TransactionId,
+          HeaderQueueName = $"transaction-{context.TransactionId}-header",
+          PayloadQueueName = $"transaction-{context.TransactionId}-payload",
+          // ... other request details (input data to process, etc.)
+      };
+      
+      producerClient.SendRequest(request);
+      
+      Log.Info($"Request sent to Producer for transaction {context.TransactionId}");
+      
+      // Method returns - StateMachine detects completion and transitions to AwaitingResults
+      // Producer may have already started publishing messages to queues by this point
+  }
+  ```
+
+- `OnExit(): void`
+  ```csharp
+  public void OnExit() {
+      Log.Info($"Exiting RequestForwarding state for transaction {context.TransactionId}");
+      // No cleanup needed - queues remain active for message consumption
+  }
+  ```
+
+**Idempotency:**
+If crash occurs during this state and state machine is recreated:
+- Queues are recreated with same deterministic names (by Autofac)
+- Request may be sent to Producer again (Producer should handle duplicate requests via TransactionID)
+- Safe to re-execute
+
+---
+
+### AwaitingResultsStateHandler
+Handles State 1: Consuming and processing messages from transaction-specific queues.
+
+**Responsibilities:**
+- Monitor message arrival and completion status
+- Track which messages have arrived vs. expected (ordinal tracking)
+- Detect when all series are complete
+- Trigger transition to SendingCompletion state
+
+**Dependencies:**
+- `kvStoreService: IKVStoreService` - For:
+  - **Message tracking persistence**: Storing message ordinals → storage paths as messages arrive (written by ResultHandler during message processing)
+  - **Completion detection**: Querying stored message count vs. expected count for each series
+  - **Metadata loading**: Reading transaction metadata (series types, expected counts) written by ResultHandler.HandleHeaderMessage
+
+> **Note:** DatabaseService is NOT a dependency. StateMachine uses DatabaseService to persist its own state, but state handlers only use KVStoreService for business-specific message tracking.
+
+**Constructor:**
+```csharp
+public AwaitingResultsStateHandler(IKVStoreService kvStoreService)
+{
     this.kvStoreService = kvStoreService;
 }
 ```
@@ -335,20 +458,19 @@ public AwaitingResultsStateHandler(
 Handles State 2: Sending completion notification after all messages received.
 
 **Dependencies:**
-- `stateMachine: StateMachine` - Parent state machine (for context access)
-- `resultAssembler: ResultAssembler` - Assembles blob URIs from KV Store
-- `notificationSender: NotificationSender` - Sends notifications to Notification Queue
-- `kvStoreService: IKVStoreService` - For marking transaction complete
+- `resultAssembler: ResultAssembler` - Assembles organized blob URIs from KV Store for notification payload
+- `notificationSender: NotificationSender` - Sends completion notifications to Notification Queue
+- `kvStoreService: IKVStoreService` - For:
+  - Reading all blob mappings (message ordinals → storage paths) for ResultAssembler
+  - Marking transaction as complete in persistent state
 
 **Constructor:**
 ```csharp
 public SendingCompletionStateHandler(
-    StateMachine stateMachine,
     ResultAssembler resultAssembler,
     NotificationSender notificationSender,
     IKVStoreService kvStoreService)
 {
-    this.stateMachine = stateMachine;
     this.resultAssembler = resultAssembler;
     this.notificationSender = notificationSender;
     this.kvStoreService = kvStoreService;
