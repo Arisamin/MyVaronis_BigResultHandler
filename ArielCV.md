@@ -20,6 +20,12 @@ Career break to manage family health responsibilities while pursuing interests i
 Developed cyber security automation services for enterprise customers, focusing on Windows permission management and security vulnerability detection.
 
 **Responsibilities:**
+- Designed and implemented BigResultHandler, a distributed result aggregation service using event-driven architecture with RabbitMQ message queuing, stateful processing via state machine pattern, and 3-layer crash recovery (Database state persistence, message durability, KV Store deduplication) ensuring exactly-once semantics for data uploads to Azure Blob Storage
+- Developed asynchronous message processing pipelines using .NET TPL Dataflow, maximizing throughput and minimizing consumer thread blocking
+- Engineered memory-efficient streaming uploads to Azure Blob Storage, ensuring constant memory usage for large payloads
+- Built crash-safe, idempotent message handling with automatic recovery and deduplication via KV Store checks
+- Evaluated and selected .NET TPL Dataflow over Reactive Extensions for explicit thread management and backpressure control in high-throughput, I/O-bound scenarios
+- Implemented robust error handling and retry logic for distributed message processing, ensuring reliable operation under failure conditions
 - Worked on various services handling automated permission remediation and security vulnerability detection
 - Developed in multi-threaded, event-driven environments with stateful processing and crash recovery mechanisms
 - Contributed to architecture discussions and technical design decisions
@@ -28,7 +34,7 @@ Developed cyber security automation services for enterprise customers, focusing 
 - Participated in SAAS transformation from on-premises to Azure cloud platform
 - Built WPF administration tools for security policy configuration
 
-**Technologies:** C# (.NET Framework 4.x), Azure (Service Bus, Blob Storage), MS SQL Server, RabbitMQ, Multi-threading, WPF
+**Technologies:** C# (.NET Framework 4.x), Multi-threading, MS SQL Server, RabbitMQ, WPF, Azure (Table Storage, Blob Storage, ADX/Kusto)
 
 ### Senior C# Developer in the RTA Group
 **NICE - Raanana, Israel** | *Jan 2017 - 2019*
@@ -77,9 +83,9 @@ My group was responsible for enhancing and maintaining infrastructure and applic
 
 **Languages & Frameworks:** C# (.NET Framework 4.x - 4.8, exposure to .NET 5/6 in later career stages), SQL, WPF, Autofac (IoC/DI)
 
-**Cloud & Infrastructure:** Azure (ADX/Kusto, Table Storage, Blob Storage)
+**Cloud & Infrastructure:** Azure (ADX/Kusto for logging, Table Storage, Blob Storage, Portal for environment management)
 
-**Data & Messaging:** MS SQL Server, RabbitMQ, Azure Service Bus
+**Data & Messaging:** MS SQL Server, RabbitMQ
 
 **Development Practices:** TDD, Unit Testing (MS Test), Code Reviews, Agile/Scrum
 
