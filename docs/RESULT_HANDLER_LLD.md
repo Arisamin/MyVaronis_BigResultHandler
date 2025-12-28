@@ -2,6 +2,31 @@
 
 > **Note:** This document is partly Copilot-generated content based on high-level architecture discussions.
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Class Structure](#class-structure)
+  - [ResultHandler](#resulthandler)
+- [Implementation Details](#implementation-details)
+  - [HandleHeaderMessage Implementation](#handleheadermessage-implementation)
+  - [HandlePayloadMessage Implementation](#handlepayloadmessage-implementation)
+- [Storage and Persistence Services](#storage-and-persistence-services)
+  - [AzureStorageService](#azurestorageservice)
+  - [KVStoreService](#kvstoreservice)
+- [Message Structures](#message-structures)
+  - [HeaderMessage](#headermessage)
+  - [PayloadMessage](#payloadmessage)
+- [Processing Flow](#processing-flow)
+  - [Transaction Initialization](#transaction-initialization)
+  - [Header Message Processing](#header-message-processing)
+  - [Payload Message Processing](#payload-message-processing)
+  - [Completion Processing](#completion-processing)
+  - [Crash Recovery](#crash-recovery)
+- [Concurrency Considerations](#concurrency-considerations)
+  - [Multi-Instance Processing](#multi-instance-processing)
+  - [Thread Safety](#thread-safety)
+- [Message Handling Patterns: Consumer Thread Release, Memory Efficiency, and Crash Safety](#message-handling-patterns-consumer-thread-release-memory-efficiency-and-crash-safety)
+
 ## Overview
 This document provides the low-level design for the **ResultHandler** class, which handles message processing logic through callback methods.
 
@@ -212,7 +237,6 @@ class PayloadMessage {
     DateTime Timestamp;
 }
 ```
-```
 
 ---
 
@@ -367,3 +391,58 @@ class PayloadMessage {
 - `MaxConcurrentTransactions` - Limit on active transactions (e.g., 1000)
 - `MaxSeriesPerTransaction` - Limit on series types (e.g., 100)
 - `MaxMessagesPerSeries` - Limit on ordinals (e.g., 10000)
+
+---
+
+## Message Handling Patterns: Consumer Thread Release, Memory Efficiency, and Crash Safety
+
+### Goals
+- **Release the consumer thread as soon as possible:** Prevent blocking RabbitMQ consumer threads to maximize throughput and avoid backpressure.
+- **Efficient memory usage:** Avoid loading entire (potentially large) messages into memory; process data in a streaming fashion.
+- **Crash and recovery safety:** Ensure that message processing is idempotent and can safely resume after a crash, with no data loss or duplication.
+
+### Approaches Considered
+
+#### 1. .NET Reactive Extensions (Rx) / Observable Pattern
+- **Description:** Use IObservable/IObserver to model message streams, with subscription-based handlers.
+- **Pros:** Elegant for composing asynchronous event streams, supports LINQ-style operators, good for complex event processing.
+- **Cons:** Not ideal for backpressure or explicit thread management; less control over consumer thread release; can be overkill for simple message dispatch.
+
+#### 2. .NET Dataflow (TPL Dataflow, e.g., ActionBlock)
+- **Description:** Use ActionBlock or TransformBlock to process messages asynchronously, decoupling message arrival from processing.
+- **Pros:** Explicit control over degree of parallelism, built-in support for async processing, easy to post messages and immediately release consumer thread, robust error handling.
+- **Cons:** Slightly more boilerplate, but better fit for high-throughput, memory-efficient pipelines.
+
+### Chosen Approach: TPL Dataflow (ActionBlock)
+
+- **Implementation:**  
+  - Each queue consumer registers a callback (e.g., `OnMessageReceived`) that posts the message to an ActionBlock.
+  - The ActionBlock processes messages asynchronously, allowing the consumer thread to return immediately.
+  - Payloads are processed using streaming APIs, reading from the message stream and writing to blob storage in fixed-size buffers.
+  - After successful processing and persistence, the message is acknowledged (ACK) to RabbitMQ.
+  - If processing fails, the message is not ACK’d and will be redelivered after recovery.
+
+- **Benefits:**  
+  - Consumer threads are never blocked by slow uploads or storage operations.
+  - Memory usage is bounded and predictable, regardless of message size.
+  - Processing is naturally parallelizable and can be tuned for system resources.
+  - Crash recovery is safe: unacknowledged messages are redelivered, and idempotency is enforced via KV Store checks.
+
+### Implementation Details
+
+- **Callback Registration:**
+  - `headerQueueConsumer.OnMessageReceived += (msg) => headerActionBlock.Post(msg);`
+  - `payloadQueueConsumer.OnMessageReceived += (msg) => payloadActionBlock.Post(msg);`
+- **ActionBlock Configuration:**
+  - `new ActionBlock<PayloadMessage>(async msg => await HandlePayloadMessage(msg), new ExecutionDataflowBlockOptions { MaxDegreeOfParallelism = N })`
+- **Streaming Upload:**
+  - Use a fixed-size buffer to read from the message stream and write to blob storage, never loading the full message into memory.
+- **Crash Handling:**
+  - If the process crashes before ACK, RabbitMQ redelivers the message.
+  - KV Store is checked before upload to ensure idempotency.
+- **Error Handling:**
+  - Exceptions in the ActionBlock are logged; failed messages are not acknowledged and will be retried.
+
+### Why Not Rx?
+- Rx is powerful for event composition but less suited for explicit thread management and backpressure in high-throughput, I/O-bound scenarios.
+- TPL Dataflow provides more direct control over concurrency, memory, and error handling.
