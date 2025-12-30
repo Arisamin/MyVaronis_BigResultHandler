@@ -1,14 +1,11 @@
 using System;
-using System.Reactive.Subjects;
-using System.Reactive.Concurrency;
+using System.Threading.Tasks.Dataflow;
 
-// Example implementation of ResultHandler using Rx Subject for message handling
+// Example implementation of ResultHandler using TPL Dataflow for message handling
 public class ResultHandler : IDisposable
 {
-    private readonly Subject<HeaderMessage> headerSubject = new();
-    private readonly Subject<PayloadMessage> payloadSubject = new();
-    private readonly IDisposable headerSubscription;
-    private readonly IDisposable payloadSubscription;
+    private readonly ActionBlock<HeaderMessage> headerBlock;
+    private readonly ActionBlock<PayloadMessage> payloadBlock;
     private readonly IAzureStorageService storageService;
     private readonly IKVStoreService kvStoreService;
 
@@ -21,16 +18,12 @@ public class ResultHandler : IDisposable
         this.storageService = storageService;
         this.kvStoreService = kvStoreService;
 
-        headerQueueConsumer.OnMessageReceived += msg => headerSubject.OnNext(msg);
-        payloadQueueConsumer.OnMessageReceived += msg => payloadSubject.OnNext(msg);
+        // Configure ActionBlocks (optionally set BoundedCapacity, MaxDegreeOfParallelism, etc.)
+        headerBlock = new ActionBlock<HeaderMessage>(HandleHeaderMessage);
+        payloadBlock = new ActionBlock<PayloadMessage>(HandlePayloadMessage);
 
-        headerSubscription = headerSubject
-            .ObserveOn(TaskPoolScheduler.Default)
-            .Subscribe(HandleHeaderMessage, OnError, OnCompleted);
-
-        payloadSubscription = payloadSubject
-            .ObserveOn(TaskPoolScheduler.Default)
-            .Subscribe(HandlePayloadMessage, OnError, OnCompleted);
+        headerQueueConsumer.OnMessageReceived += msg => headerBlock.Post(msg);
+        payloadQueueConsumer.OnMessageReceived += msg => payloadBlock.Post(msg);
     }
 
     private void HandleHeaderMessage(HeaderMessage message)
@@ -51,22 +44,13 @@ public class ResultHandler : IDisposable
         // Log.Info($"Uploaded and mapped blob for transaction {payload.TransactionId}");
     }
 
-    private void OnError(Exception ex)
-    {
-        // Handle errors (logging, alerting, etc.)
-    }
-
-    private void OnCompleted()
-    {
-        // Cleanup logic if needed
-    }
-
     public void Dispose()
     {
-        headerSubscription.Dispose();
-        payloadSubscription.Dispose();
-        headerSubject.Dispose();
-        payloadSubject.Dispose();
+        headerBlock.Complete();
+        payloadBlock.Complete();
+        // Optionally wait for completion
+        // headerBlock.Completion.Wait();
+        // payloadBlock.Completion.Wait();
     }
 }
 
