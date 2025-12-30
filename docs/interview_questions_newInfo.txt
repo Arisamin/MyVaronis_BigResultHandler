@@ -1,0 +1,30 @@
+NEW INFORMATION ADDED TO INTERVIEW_QUESTIONS.MD
+================================================
+
+1. In Question 1 (What happens if the BigResultHandler crashes?) - Added under the crash handling explanation:
+
+**State Machine Implementation:**
+- State machine uses State Pattern with state handler objects (e.g., AwaitingResultsStateHandler, SendingCompletionStateHandler)
+- Context object is maintained across state transitions
+- Context contains Transaction ID and other transaction-specific data
+- State handlers are stateless - all state is in context object and external stores
+
+**Resource Sharing:**
+- KV Store and Azure Storage objects are shared across different state machine instances
+- Multiple state machine instances can coexist handling different transactions
+- Each instance operates on its own transaction data using unique Transaction ID
+- State handlers access their data in KV Store/Storage by Transaction ID key
+- This ensures data isolation between concurrent transactions
+
+Upon crash, a new state machine instance is created for the recovered transaction, accessing the same KV Store/Storage using the persisted Transaction ID.
+
+
+2. In Question 11 (How does the system scale horizontally?) - Added:
+
+**State Machine Concurrency:**
+- Multiple state machine instances can coexist within a single process
+- Each state machine instance handles one transaction using its unique Transaction ID
+- KV Store and Azure Storage are shared resources across all instances
+- State handlers access their transaction data using Transaction ID as the key
+- Context object containing Transaction ID is passed between state handlers
+- No interference between concurrent transactions due to Transaction ID isolation

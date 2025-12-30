@@ -446,3 +446,29 @@ class PayloadMessage {
 ### Why Not Rx?
 - Rx is powerful for event composition but less suited for explicit thread management and backpressure in high-throughput, I/O-bound scenarios.
 - TPL Dataflow provides more direct control over concurrency, memory, and error handling.
+
+#### Why Rx Is Not Suitable for Explicit Thread Management
+
+Rx (.NET Reactive Extensions) is designed for composing and reacting to asynchronous event streams, but it abstracts away explicit thread management and backpressure control. Here’s why it’s not ideal for this scenario:
+
+1. **Threading is Abstracted, Not Explicitly Controlled:**
+   - Rx lets you specify where (on which scheduler) observers run, but it doesn’t give you direct control over when the producer (the queue consumer) is allowed to release its thread.
+   - If you subscribe to an observable, the producer may keep its thread busy until the observer completes processing, unless you explicitly offload work (e.g., with `ObserveOn` or `SubscribeOn`), which can be error-prone and hard to reason about in high-throughput, I/O-bound scenarios.
+
+2. **No Built-in Backpressure or Bounded Queuing:**
+   - Rx does not natively support backpressure (controlling the rate at which producers emit items based on consumer readiness).
+   - If the consumer is slow, the producer may overwhelm the system with events, leading to unbounded memory growth or dropped messages.
+
+3. **Immediate Callback Execution by Default:**
+   - By default, Rx invokes observer callbacks synchronously on the producer’s thread unless you explicitly schedule otherwise.
+   - This means the queue consumer thread could be blocked until the entire message is processed, which is exactly what you want to avoid.
+
+4. **No Native Support for Asynchronous/Awaitable Processing:**
+   - Rx is not designed for async/await patterns out of the box. Handling asynchronous message processing (e.g., streaming to blob storage) requires awkward workarounds, such as wrapping async code in `Task.Run`, which can lead to thread pool starvation or subtle bugs.
+
+5. **TPL Dataflow is Designed for This Use Case:**
+   - TPL Dataflow’s `ActionBlock` is built for decoupling producer and consumer, with explicit control over concurrency, bounded capacity, and async processing.
+   - You can post a message to an `ActionBlock` and immediately release the producer thread, knowing the block will process messages in the background.
+
+**Summary:**
+Rx is great for event composition and UI/reactive programming, but for high-throughput, I/O-bound, and memory-sensitive server-side message processing where you need explicit thread release and backpressure, TPL Dataflow is a much better fit.

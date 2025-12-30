@@ -1,9 +1,27 @@
 # BigResultHandler - Architecture
 
 ## Overview
-The BigResultHandler is a component that manages unlimited-size results by coordinating header and payload data received through separate RabbitMQ queues, ensuring complete result assembly before notification.
+The BigResultHandler system manages unlimited-size results by coordinating header and payload data received through separate RabbitMQ queues, ensuring complete result assembly before notification.
 
-The component operates as a state machine with two states to enable recovery from crashes and continuation of processing from the last known state.
+### Component Structure
+
+**ResultService**: Top-level service that manages the overall system
+- Uses IOC Container (e.g., Autofac) for dependency injection
+- Registers shared dependencies: Queues, Azure Storage, KV Store (Azure Table Storage)
+- Creates ResultManager instances for processing
+
+**ResultManager**: Orchestrates transaction processing
+- Created by ResultService via IOC Container with injected dependencies
+- Instantiates a StateMachine for each specific TransactionID
+- Calls `stateMachine.Run()` to begin processing
+- Each transaction gets its own StateMachine instance
+
+**StateMachine**: Per-transaction state coordinator
+- Instantiated specifically for a single TransactionID
+- Contains state handlers for the two states
+- Maintains current state (initially State 1: Awaiting Results)
+- Runs continuously, awaiting all messages for its transaction
+- Enables recovery from crashes by persisting and restoring state
 
 **Note on Terminology:** Throughout this document, "KV Store" refers to **Azure Table Storage**, a NoSQL key-value store that organizes data using PartitionKey (TransactionID) and RowKey (composite key of SeriesType and Ordinal). This allows efficient querying of all entries within a transaction namespace.
 
@@ -20,15 +38,26 @@ To view the diagram, open the `.mermaid` file in VS Code and use `Ctrl+Shift+P` 
 ### 1. **Header Consumer**
 - Listens to Header Queue
 - Receives result headers with Transaction ID and payload series types
-- Forwards header messages to Result Handler
+- Forwards header messages to ResultManager
 
 ### 2. **Payload Consumer**
 - Listens to Payload Queue (handles 250MB messages)
 - Receives payload messages with Transaction ID, series type, message ordinal, and total message count in the series
-- Forwards payload messages to Result Handler
+- Forwards payload messages to ResultManager
 
-### 3. **Result Handler**
-- Receives header and payload messages from consumers
+### 3. **ResultManager**
+- Orchestrates processing for transactions
+- Created by ResultService with injected dependencies (Queues, Storage, KV Store)
+- Instantiates StateMachine for each TransactionID
+- Calls `stateMachine.Run()` to start transaction processing
+- Manages lifecycle of StateMachine instances
+
+### 4. **StateMachine**
+- Per-transaction state coordinator instantiated with specific TransactionID
+
+
+- Begins in State 1 (Awaiting Results) and awaits all expected messages
+- Contains state handler instances that process messages based on current state
 - Interprets header to determine expected message types and series
 - Coordinates different payload message type series (which are unaware of each other)
 - Uses header as the binder to know which message series to expect
@@ -45,7 +74,7 @@ To view the diagram, open the `.mermaid` file in VS Code and use `Ctrl+Shift+P` 
   - **Value**: `BlobURI`
 - Azure Storage is agnostic to series types and ordinals - it only stores raw data blobs
 
-### 4. **Result Assembler**
+### 5. **Result Assembler**
 - Retrieves all blob URIs for a transaction from KV Store by querying the Transaction ID namespace
 - Accesses KV Store namespace `TransactionID` and retrieves all key-value pairs:
   - Each entry has key `<SeriesType, Ordinal>` and value `BlobURI`
@@ -54,7 +83,7 @@ To view the diagram, open the `.mermaid` file in VS Code and use `Ctrl+Shift+P` 
 - Prepares structured metadata for the Result Notifier
 - Does not assemble actual data - only organizes the references to where data is stored
 
-### 5. **Result Notifier**
+### 6. **Result Notifier**
 - Receives organized blob URIs from Result Assembler
 - Publishes notification to Notification Queue containing:
   - Transaction ID
@@ -65,7 +94,7 @@ To view the diagram, open the `.mermaid` file in VS Code and use `Ctrl+Shift+P` 
   - Retrieve actual data from Azure Storage using the blob URIs
   - Restore the complete result by assembling data from all blobs
 
-### 6. **KV Store (Key-Value Store)**
+### 7. **KV Store (Key-Value Store)**
 - External storage system with namespace support
 - Organized by Transaction ID namespaces
 - Data structure:
@@ -76,7 +105,7 @@ To view the diagram, open the `.mermaid` file in VS Code and use `Ctrl+Shift+P` 
 - Result Assembler queries a Transaction ID namespace to retrieve all key-value pairs
 - Provides metadata for organizing blob URI references
 
-### 7. **Azure Storage**
+### 8. **Azure Storage**
 - External blob storage
 - Stores raw payload data from each message as separate blobs
 - **Completely agnostic to series types, ordinals, and transaction structure**
@@ -93,30 +122,38 @@ To view the diagram, open the `.mermaid` file in VS Code and use `Ctrl+Shift+P` 
 
 ## State Machine
 
-The BigResultHandler operates as a state machine with two states:
+Each transaction is processed by its own StateMachine instance with two states:
 
 ### **State Machine Implementation**
 
-The state machine is implemented using the **State Pattern** with the following design:
+The StateMachine is implemented using the **State Pattern** with the following design:
 
-- **State Handler Objects**: Each state is implemented as a separate handler object designed to handle state-specific logic
-  - `AwaitingResultsStateHandler`: Handles State 1 operations
-  - `SendingCompletionStateHandler`: Handles State 2 operations
+**Instantiation and Lifecycle:**
+- StateMachine is instantiated by ResultManager for a specific TransactionID
+- Each StateMachine instance is dedicated to one transaction
+- Contains its own set of state handler instances
+- Begins in State 1 (Awaiting Results) when `Run()` is called
+- Processes messages for its transaction until completion
 
-- **Context Object**: A context object is maintained throughout state transitions and is accessible from every state handler
-  - Contains the **Transaction ID** for identifying the transaction being processed
-  - Passed to each state handler when transitioning between states
-  - Provides continuity and state information across the state machine lifecycle
+**State Handler Objects**: Each state is implemented as a separate handler object within the StateMachine
+- `AwaitingResultsStateHandler`: Handles State 1 operations
+- `SendingCompletionStateHandler`: Handles State 2 operations
+- State handlers are created and owned by the StateMachine instance
 
-- **Shared Resources**: Multiple state machine instances can exist in the process simultaneously to handle concurrent transactions
-  - **KV Store**: Shared among all state machine instances
-  - **Azure Storage**: Shared among all state machine instances
-  - Each state machine instance operates on its own transaction data using the unique Transaction ID from the context object
+**Context Object**: A context object is maintained throughout state transitions and is accessible from every state handler
+- Contains the **Transaction ID** for identifying the transaction being processed
+- Passed to each state handler when transitioning between states
+- Provides continuity and state information across the state machine lifecycle
 
-- **Data Isolation**: State handlers interact with their relevant data in KV Store and Azure Storage by:
-  - Using the **Transaction ID** from the context object as the key
-  - Each transaction's data is isolated by its unique Transaction ID
-  - Multiple state machines can safely coexist without interference
+**Shared Resources**: Multiple StateMachine instances can exist in the process simultaneously to handle concurrent transactions
+- **KV Store**: Shared among all StateMachine instances (injected via IOC)
+- **Azure Storage**: Shared among all StateMachine instances (injected via IOC)
+- Each StateMachine instance operates on its own transaction data using the unique Transaction ID from the context object
+
+**Data Isolation**: State handlers interact with their relevant data in KV Store and Azure Storage by:
+- Using the **Transaction ID** from the context object as the key
+- Each transaction's data is isolated by its unique Transaction ID
+- Multiple StateMachines can safely coexist without interference
 
 ### **State 1: Awaiting Results**
 - Component is waiting for all expected messages for a transaction

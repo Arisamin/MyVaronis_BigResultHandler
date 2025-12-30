@@ -2,52 +2,76 @@
 
 > **Document Purpose:** This document contains unresolved architectural questions, potential issues, and areas requiring clarification identified during technical review of the BigResultHandler system documentation.
 
+> **Status Tracking:** Questions marked as ✅ RESOLVED have been addressed in updated documentation.
+
 ---
 
 ## **Critical Architecture Questions:**
 
-### 1. **Message Routing & Transaction Discovery**
+### 1. **Message Routing & Transaction Discovery** ✅ RESOLVED
 **Issue:** How do messages get routed to the correct StateMachine instance?
 
-**Current Documentation:**
-- ARCHITECTURE.md states: "Header Consumer forwards messages to ResultManager" and "Payload Consumer forwards messages to ResultManager"
-- RESULT_HANDLER_LLD.md shows queue consumers registering callbacks directly with ResultHandler
+**RESOLUTION:**
+Each transaction gets its own dedicated RabbitMQ queues with deterministic names:
+- `transaction-{TransactionId}-header`
+- `transaction-{TransactionId}-payload`
 
-**Questions:**
-- If ResultHandler is instantiated per-transaction, how do queue consumers know which ResultHandler instance to route messages to?
-- Or is there ONE ResultHandler for ALL transactions?
-- How does the system map TransactionID from incoming messages to the appropriate StateMachine instance?
+**Flow:**
+1. State 0 (Establishing Connection): StateMachine creates queues and sends request to Producer with queue names
+2. Producer publishes messages to the transaction-specific queues
+3. StateMachine consumes from its own queues only
+4. No routing needed - queue isolation provides natural message segregation
 
-**Missing:**
-- Transaction ID → StateMachine instance mapping/routing logic
-- Central registry or lookup mechanism for active transactions
+**Documentation Updated:** STATE_MACHINE_LLD.md, CRASH_RECOVERY.md
 
 ---
 
-### 2. **ResultHandler Lifecycle & Scope**
+### 2. **ResultHandler Lifecycle & Scope** ✅ RESOLVED
 **Contradiction in Documentation:**
 - STATE_MACHINE_LLD.md shows StateMachine constructor receives `resultHandler` as dependency (suggesting one ResultHandler per StateMachine/transaction)
 - RESULT_HANDLER_LLD.md shows ResultHandler registers with queue consumers in constructor (suggesting one ResultHandler for all messages listening to shared queues)
 
-**Question:**
-- Is ResultHandler singleton (shared across all transactions) or per-transaction?
-- This fundamentally changes the architecture and impacts threading, state management, and resource allocation
+**RESOLUTION:**
+ResultHandler is **per-transaction**, not singleton. The entire transaction processing stack is instantiated within a dedicated Autofac lifetime scope:
 
-**Impact:**
-- If singleton: How does it route messages to correct StateMachine?
-- If per-transaction: How do queue consumers (which are shared infrastructure) route to correct instance?
+**Architecture:**
+- ResultService receives request with TransactionID
+- Creates Autofac lifetime scope for this transaction
+- Within scope, instantiates:
+  - Transaction-specific RabbitMQ queues
+  - StateMachine (one per transaction)
+  - ResultHandler (one per transaction)
+  - Queue consumers (specific to transaction queues)
+- On completion, scope is disposed, destroying all components
+
+**No shared infrastructure** - each transaction is fully isolated.
+
+**Documentation Updated:** STATE_MACHINE_LLD.md, CRASH_RECOVERY.md
 
 ---
 
-### 3. **Queue Consumer Instantiation Timing**
+### 3. **Queue Consumer Instantiation Timing** ✅ RESOLVED
 **Issue:** RESULT_HANDLER_LLD.md states: "queue consumers are instantiated by ResultService when it creates the StateMachine and ResultHandler"
 
-**Questions:**
+**Question:**
 - How can queue consumers be instantiated per-transaction if they're listening to shared RabbitMQ queues?
 - Aren't queue consumers singleton infrastructure components that listen continuously?
-- What is the actual relationship between queue infrastructure and per-transaction processing?
 
-**Missing:**
+**RESOLUTION:**
+There are **no shared queues**. Queue consumers ARE instantiated per-transaction because:
+1. Each transaction gets its own queues (deterministic naming)
+2. Queue consumers are created within the transaction's Autofac lifetime scope
+3. Consumers listen only to that transaction's queues
+4. On transaction completion, consumers are disposed along with queues
+
+**Crash Recovery:**
+- Queue names are deterministic: Same TransactionID → Same queue names
+- On recovery, Autofac scope recreates consumers for the same queues
+- RabbitMQ queues survive crashes (durable), enabling reconnection
+
+**Documentation Updated:** STATE_MACHINE_LLD.md, CRASH_RECOVERY.md
+
+---
 - Clear distinction between queue listener infrastructure (singleton) vs. transaction-specific message processing
 - Queue consumer architecture and lifecycle
 
@@ -441,6 +465,123 @@ Documents show overlapping responsibilities:
 
 ---
 
+## **Implementation Details & Design Patterns (Lower Priority)**
+
+These questions explore code-level techniques, patterns, and design considerations. While important for interview preparation and deep technical understanding, they are less critical than the architectural questions above.
+
+### ID-1. **Autofac Configuration & Lifetime Scopes**
+**Questions:**
+- How are components registered in Autofac modules?
+- What lifetime scopes are used for different components?
+  - InstancePerLifetimeScope for transaction-specific components?
+  - SingleInstance for shared infrastructure?
+- How is the per-transaction lifetime scope created and managed?
+- What is the module build sequence? (queues → consumers → handlers → state machine)
+- Why Autofac over built-in .NET DI container?
+
+**Topics to Document:**
+- Autofac module registration patterns
+- Lifetime scope hierarchy and nesting
+- Component disposal and cleanup via scope disposal
+- Dependency resolution order
+
+---
+
+### ID-2. **Multi-threading & Concurrency Patterns**
+**Questions:**
+- How are multiple messages processed concurrently within a transaction?
+- Are message handlers (HandleHeaderMessage, HandlePayloadMessage) thread-safe?
+- What synchronization primitives are used? (locks, semaphores, concurrent collections)
+- How is TransactionContext protected from concurrent updates?
+- Are there thread pools for message processing?
+
+**Topics to Document:**
+- Thread safety guarantees for shared state
+- Synchronization mechanisms and locking strategy
+- Concurrent message processing design
+- Race condition prevention techniques
+
+---
+
+### ID-3. **Message Handling Implementation Patterns**
+**Questions:**
+- How are consumer callbacks registered and invoked?
+- How is message deserialization handled? (Protocol Buffers)
+- How is message correlation tracked across header/payload queues?
+- What happens to malformed or unparseable messages?
+
+**Topics to Document:**
+- Callback registration patterns
+- Message deserialization and validation
+- Error handling for corrupt messages
+- Message correlation techniques
+
+---
+
+### ID-4. **Idempotency Implementation Techniques**
+**Questions:**
+- How is KV Store ordinal checking implemented to prevent duplicates?
+- What happens if two threads check the same ordinal simultaneously?
+- Are KV Store operations atomic? Using eTags for optimistic concurrency?
+- How are partial failures handled? (blob uploaded but KV write fails)
+
+**Topics to Document:**
+- Idempotent operation patterns
+- Race condition handling in duplicate checks
+- Atomic operations and transactional boundaries
+- Retry logic and compensation
+
+---
+
+### ID-5. **Error Handling & Logging Strategies**
+**Questions:**
+- What exceptions are caught and handled at each layer?
+- What is logged at each stage of processing?
+- How are errors propagated up the stack?
+- What monitoring/observability hooks exist?
+- How are errors surfaced to operators?
+
+**Topics to Document:**
+- Exception handling patterns per component
+- Logging strategy (what, when, at what level)
+- Monitoring and metrics collection
+- Alerting on critical failures
+
+---
+
+### ID-6. **State Machine Pattern Implementation Details**
+**Questions:**
+- How is IStateHandler interface designed?
+- How are state transitions triggered? (OnEnter completion → automatic transition)
+- How does StateMachine know which handler to invoke next?
+- Can state handlers fail and trigger rollback?
+
+**Topics to Document:**
+- State handler interface contract
+- State transition mechanics
+- State handler invocation lifecycle
+- Error handling within state handlers
+
+---
+
+
+**Note:** Direct Azure SDK usage was not part of this project. All Azure access (Blob Storage, Table Storage, etc.) was performed via Varonis internal wrapper libraries. No code-level experience with Azure SDK configuration, connection management, or retry policies.
+
+### ID-8. **Performance Optimization Techniques**
+**Questions:**
+- How is blob upload performance optimized? (streaming, chunking, parallel upload)
+- Are KV Store operations batched?
+- How is memory managed for large payloads?
+- Are there any caching strategies?
+
+**Topics to Document:**
+- Blob upload optimization strategies
+- Batch operations for KV Store
+- Memory efficiency techniques
+- Performance monitoring and profiling
+
+---
+
 ## **Next Steps:**
 
 1. Review and answer each question in this document
@@ -450,3 +591,4 @@ Documents show overlapping responsibilities:
 5. Create KV Store schema reference
 6. Add concurrency and synchronization documentation
 7. Conduct architecture review session with team
+8. Document implementation details and design patterns (lower priority)

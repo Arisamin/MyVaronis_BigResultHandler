@@ -47,6 +47,13 @@ These questions arise directly from buzzwords and claims in the CV. Must have co
    - Need: Lifetime scopes used
    - Need: Why Autofac over built-in .NET DI
 
+### Azure Blob Storage
+8. **"How did you use Azure Blob Storage in your work?"**
+   - Need: Document specific usage pattern (uploading result chunks)
+   - Need: API calls used, authentication approach
+   - Need: Challenges and solutions (chunking, streaming, retry logic)
+   - TODO: Deep dive into implementation details in design docs
+
 ---
 
 ## Design Questions Summary

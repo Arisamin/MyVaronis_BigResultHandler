@@ -1,28 +1,44 @@
-# Result Assembler - Low Level Design
+# Result Assembler and Notification Sender - Low Level Design
 
 > **Note:** This document is Copilot-generated content based on high-level architecture discussions. A user-verified version will be created later.
 
 ## Overview
-The Result Assembler is responsible for retrieving all blob URIs for a completed transaction from KV Store (Azure Table Storage), organizing them by series type and ordinal, and preparing structured metadata for the Result Notifier.
+This document describes the Result Assembler and Notification Sender components that work together in State 2 (Sending Completion) of the state machine.
 
-**Key Principle:** The Result Assembler does NOT assemble actual data - it only organizes references (blob URIs) to where data is stored in Azure Storage.
+**Result Assembler**: Retrieves all blob URIs for a completed transaction from KV Store (Azure Table Storage) and organizes them by series type and ordinal.
+
+**Notification Sender**: Takes the organized data and publishes completion notifications to the Notification Queue.
+
+**Key Principle:** These components do NOT assemble actual data - they only organize and send references (blob URIs) to where data is stored in Azure Storage.
 
 ## Class Structure
 
 ### ResultAssembler
-Main class that orchestrates blob URI retrieval and organization.
+Organizes blob URIs for completed transactions.
 
 **Properties:**
 - `kvStoreService: IKVStoreService` - Service for querying Azure Table Storage
-- `notificationService: INotificationService` - Service for publishing to Notification Queue
 
 **Methods:**
-- `AssembleAndNotify(transactionId: string): void` - Main entry point
+- `AssembleBlobs(transactionId: string): OrganizedBlobData` - Main entry point
 - `RetrieveBlobMappings(transactionId: string): List<BlobMapping>` - Query KV Store for all blob URIs
 - `OrganizeBySeriesType(blobMappings: List<BlobMapping>): Dictionary<string, List<BlobReference>>` - Group and sort URIs
 - `ValidateCompleteness(organizedData: Dictionary<string, List<BlobReference>>): bool` - Verify no gaps in ordinals
-- `CreateNotificationMessage(transactionId: string, organizedData: Dictionary<string, List<BlobReference>>): NotificationMessage` - Build notification
+
+---
+
+### NotificationSender
+Sends completion notifications to RabbitMQ Notification Queue.
+
+**Properties:**
+- `queueService: IQueueService` - Access to RabbitMQ Notification Queue
+- `kvStoreService: IKVStoreService` - For marking transaction complete
+
+**Methods:**
+- `SendNotification(transactionId: string, organizedData: OrganizedBlobData): void` - Main entry point
+- `CreateNotificationMessage(transactionId: string, organizedData: OrganizedBlobData): NotificationMessage` - Build notification
 - `PublishNotification(notificationMessage: NotificationMessage): void` - Send to queue
+- `MarkTransactionComplete(transactionId: string): void` - Update KV Store
 
 ---
 
@@ -47,8 +63,17 @@ Organized reference to a blob within a series.
 
 ---
 
+### OrganizedBlobData
+Result of ResultAssembler processing, passed to NotificationSender.
+
+**Properties:**
+- `SeriesCollection: Dictionary<string, List<BlobReference>>` - Blob references organized by series type
+- `TotalBlobCount: int` - Total number of blobs across all series
+
+---
+
 ### SeriesData
-Container for all blob references within a single series type.
+Container for all blob references within a single series type (used in notification message).
 
 **Properties:**
 - `SeriesType: string` - Type identifier
@@ -73,43 +98,17 @@ Message published to Notification Queue for consumer retrieval.
 - `TotalDataSize: long` - Total size in bytes (if tracked)
 
 **Methods:**
-- `Serialize(): string` - Convert to JSON for queue message
-
----
-
-## Supporting Services
-
-### IKVStoreService
-Interface for Azure Table Storage operations (implemented in Result Handler shared services).
-
-**Methods:**
-- `GetAllBlobMappings(transactionId: string): List<BlobMapping>`
-  - Queries Azure Table Storage for all entries with PartitionKey = transactionId
-  - Excludes special rows (e.g., `__context__`)
-  - Returns all blob mappings for the transaction
-  - Example query: `PartitionKey eq 'transactionId' and RowKey ne '__context__'`
-
----
-
-### INotificationService
-Interface for publishing notification messages to RabbitMQ.
-
-**Methods:**
-- `PublishNotification(notificationMessage: NotificationMessage): void`
-  - Serializes notification to JSON
-  - Publishes to Notification Queue
-  - Includes transaction ID in message headers for routing
-  - Implements retry logic for transient failures
+- `Serialize(): string` - Convert to protobuf format for queue message
 
 ---
 
 ## Processing Flow
 
-### Main Assembly Flow
+### Result Assembler Flow
 ```
 1. Entry Point
    ↓
-   ResultAssembler.AssembleAndNotify(transactionId)
+   ResultAssembler.AssembleBlobs(transactionId)
    
 2. Retrieve Data
    ↓
@@ -139,7 +138,18 @@ Interface for publishing notification messages to RabbitMQ.
       - Return false if gaps found
    → Return true if all series complete
    
-5. Create Notification
+5. Return
+   ↓
+   Return OrganizedBlobData
+```
+
+### Notification Sender Flow
+```
+1. Entry Point
+   ↓
+   NotificationSender.SendNotification(transactionId, organizedData)
+   
+2. Create Notification
    ↓
    CreateNotificationMessage(transactionId, organizedData)
    → Build NotificationMessage
@@ -148,21 +158,34 @@ Interface for publishing notification messages to RabbitMQ.
    → Calculate total blob count
    → Set completion timestamp
    
+3. Publish
+   ↓
+   PublishNotification(notificationMessage)
+   → Include transaction ID
+   → Include all SeriesData objects
+   → Calculate total blob count
+   → Set completion timestamp
+   
 6. Publish
    ↓
    PublishNotification(notificationMessage)
-   → Serialize to JSON
+   → Serialize to protobuf format
    → Publish to Notification Queue
    → Log success
+   
+4. Mark Complete
+   ↓
+   MarkTransactionComplete(transactionId)
+   → Update KV Store to mark transaction as complete
 ```
 
 ---
 
 ## Detailed Method Implementations
 
-### AssembleAndNotify
+### ResultAssembler.AssembleBlobs
 ```csharp
-public void AssembleAndNotify(string transactionId) {
+public OrganizedBlobData AssembleBlobs(string transactionId) {
     try {
         // Step 1: Retrieve all blob mappings from KV Store
         var blobMappings = RetrieveBlobMappings(transactionId);
@@ -173,22 +196,23 @@ public void AssembleAndNotify(string transactionId) {
         }
         
         // Step 2: Organize by series type
-        var organizedData = OrganizeBySeriesType(blobMappings);
+        var organizedSeries = OrganizeBySeriesType(blobMappings);
         
         // Step 3: Validate completeness
-        if (!ValidateCompleteness(organizedData)) {
+        if (!ValidateCompleteness(organizedSeries)) {
             throw new InvalidOperationException(
                 $"Transaction {transactionId} has incomplete series");
         }
         
-        // Step 4: Create notification message
-        var notificationMessage = CreateNotificationMessage(
-            transactionId, organizedData);
+        // Step 4: Return organized data
+        var organizedData = new OrganizedBlobData {
+            SeriesCollection = organizedSeries,
+            TotalBlobCount = blobMappings.Count
+        };
         
-        // Step 5: Publish notification
-        PublishNotification(notificationMessage);
+        Log.Info($"Successfully assembled {blobMappings.Count} blobs for transaction {transactionId}");
         
-        Log.Info($"Successfully assembled and notified transaction {transactionId}");
+        return organizedData;
     }
     catch (Exception ex) {
         Log.Error($"Failed to assemble transaction {transactionId}", ex);
@@ -197,7 +221,33 @@ public void AssembleAndNotify(string transactionId) {
 }
 ```
 
-### RetrieveBlobMappings
+### NotificationSender.SendNotification
+```csharp
+public void SendNotification(string transactionId, OrganizedBlobData organizedData) {
+    try {
+        // Step 1: Create notification message
+        var notificationMessage = CreateNotificationMessage(transactionId, organizedData);
+        
+        // Step 2: Publish notification
+        PublishNotification(notificationMessage);
+        
+        // Step 3: Mark transaction as complete
+        MarkTransactionComplete(transactionId);
+        
+        Log.Info($"Successfully sent notification for transaction {transactionId}");
+    }
+    catch (Exception ex) {
+        Log.Error($"Failed to send notification for transaction {transactionId}", ex);
+        throw;
+    }
+}
+```
+
+### ResultAssembler.RetrieveBlobMappings
+        
+        // Step 5: Publish notification
+        PublishNotification(notificationMessage);
+### ResultAssembler.RetrieveBlobMappings
 ```csharp
 private List<BlobMapping> RetrieveBlobMappings(string transactionId) {
     // Query Azure Table Storage
@@ -291,16 +341,15 @@ private bool ValidateCompleteness(
 }
 ```
 
-### CreateNotificationMessage
+### NotificationSender.CreateNotificationMessage
 ```csharp
 private NotificationMessage CreateNotificationMessage(
     string transactionId,
-    Dictionary<string, List<BlobReference>> organizedData) {
+    OrganizedBlobData organizedData) {
     
     var seriesCollection = new List<SeriesData>();
-    int totalBlobCount = 0;
     
-    foreach (var kvp in organizedData) {
+    foreach (var kvp in organizedData.SeriesCollection) {
         var seriesData = new SeriesData {
             SeriesType = kvp.Key,
             TotalCount = kvp.Value.Count,
@@ -309,29 +358,47 @@ private NotificationMessage CreateNotificationMessage(
         };
         
         seriesCollection.Add(seriesData);
-        totalBlobCount += kvp.Value.Count;
     }
     
     return new NotificationMessage {
         TransactionId = transactionId,
         CompletionTimestamp = DateTime.UtcNow,
         SeriesCollection = seriesCollection,
-        TotalBlobCount = totalBlobCount
+        TotalBlobCount = organizedData.TotalBlobCount
     };
 }
 ```
 
-### PublishNotification
+### NotificationSender.PublishNotification
 ```csharp
 private void PublishNotification(NotificationMessage notificationMessage) {
     try {
-        notificationService.PublishNotification(notificationMessage);
+        // Serialize to protobuf
+        byte[] serializedMessage = SerializeToProtobuf(notificationMessage);
+        
+        // Publish to Notification Queue
+        queueService.PublishToNotificationQueue(serializedMessage, notificationMessage.TransactionId);
         
         Log.Info($"Published notification for transaction {notificationMessage.TransactionId} " +
                  $"with {notificationMessage.TotalBlobCount} blobs");
     }
     catch (Exception ex) {
         Log.Error($"Failed to publish notification for transaction {notificationMessage.TransactionId}", ex);
+        throw;
+    }
+}
+```
+
+### NotificationSender.MarkTransactionComplete
+```csharp
+private void MarkTransactionComplete(string transactionId) {
+    try {
+        kvStoreService.WriteTransactionComplete(transactionId);
+        
+        Log.Info($"Marked transaction {transactionId} as complete in KV Store");
+    }
+    catch (Exception ex) {
+        Log.Error($"Failed to mark transaction {transactionId} as complete", ex);
         throw;
     }
 }
