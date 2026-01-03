@@ -20,19 +20,9 @@ Career break to manage family health responsibilities while pursuing interests i
 Developed cyber security automation services for enterprise customers, focusing on Windows permission management and security vulnerability detection.
 
 **Responsibilities:**
-- Designed and implemented BigResultHandler, a ***distributed*** result aggregation service using event-driven architecture with RabbitMQ message queuing, stateful processing via state machine pattern, and 3-layer crash recovery (Database state persistence, message durability, KV Store deduplication) ensuring exactly-once semantics for data uploads to Azure Blob Storage
-- Developed asynchronous message processing pipelines using .NET TPL Dataflow, maximizing throughput and minimizing consumer thread blocking
-- Engineered memory-efficient streaming uploads to Azure Blob Storage, ensuring constant memory usage for large payloads
-- Built crash-safe, ***idempotent*** message handling with automatic recovery and deduplication via KV Store checks
-- Evaluated and selected .NET TPL Dataflow over Reactive Extensions for explicit thread management and ***backpressure*** control in high-throughput, I/O-bound scenarios
-- Implemented ***robust*** error handling and retry logic for distributed message processing, ensuring reliable operation under failure conditions
-- Worked on various services handling automated permission remediation and security vulnerability detection
-- Developed in multi-threaded, event-driven environments with stateful processing and crash recovery mechanisms
-- Contributed to architecture discussions and technical design decisions
-- Conducted code reviews ensuring best practices, performance, and maintainability
-- Collaborated on multi-threaded data processing solutions for high-volume environments
-- Participated in SAAS transformation from on-premises to Azure cloud platform
-- Built WPF administration tools for security policy configuration
+- LLD design and implementation of distributed, event-driven security automation solutions for enterprise environments, including automated Windows permission remediation, vulnerability detection, and supporting WPF administration tools
+- Developed production-grade systems with robust error handling, operational observability (metrics, logs, alerts), and crash recovery for reliable, scalable service delivery
+- Implemented message handling mechanisms using RabbitMQ consumers, per-transaction state machine logic, and memory-efficient streaming uploads to Azure Blob Storage; applied TPL Dataflow with bounded capacity and coordinated backpressure to ensure predictable throughput and constant memory usage
 
 **Technologies:** C# (.NET Framework 4.x), Multi-threading, MS SQL Server, RabbitMQ, WPF, Azure (Table Storage, Blob Storage, ADX/Kusto)
 
