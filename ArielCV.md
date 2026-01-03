@@ -32,10 +32,8 @@ Developed cyber security automation services for enterprise customers, focusing 
 My group develops Voice Biometrics and Multi-Factor Authentication products for Enterprise. The product is comprised of many technological and logic packed services that require comprehensive and deep understanding for careful handling and agile version releasing.
 
 **Responsibilities:**
-- Working with architects and PMs to define new features and tackle technical obstacles
-- Lead developments and designs Refactoring, adding High availability capabilities and new features
-- Mentoring and knowledge transfer to peers inside and outside the group
-- Leading customer integrations and dev support activities
+- Led development and design for refactoring, high availability, and new features
+- Led customer integrations and development support activities
 
 ### Senior C# Developer in the InfraDev Group
 **NICE - Raanana, Israel** | *Jan 2016 - Jan 2017*
@@ -43,20 +41,10 @@ My group develops Voice Biometrics and Multi-Factor Authentication products for 
 My group developed an API web service that enables sending commands to the NICE recording system. The challenges faced included providing a well-defined API with standard interfaces, a responsive, scalable, highly-available service, which is efficient in terms of performance and overloading of the underlying platform. The development process required cooperation with different teams, complying with security and maintainability standards.
 
 **Responsibilities:**
-- Technical lead, researching and integrating different aspects such as Web API, SOA development in WCF, service hosting in IIS and duplex RT events using Websockets
-- Participating in architectural designs and conducting low level designs
-- Developing core components concerning events publishing, in-memory cache and client authentication
-- Writing API documentation (collaboration with TWs)
-
-### C# Developer in the Engineering Solutions Group
-**NICE - Raanana, Israel** | *Oct 2013 - Dec 2015*
-
-My group was responsible for enhancing and maintaining infrastructure and applications of legacy products in the world of Contact Centers recording and WFO.
-
-**Responsibilities:**
-- Develop connectors for external storage devices (REST and SDK)
-- Expertise in several CTI and SIP integrations
-- Expertise in the NICE recording platform
+- Developed Web API, WCF services, IIS hosting, and real-time event systems using Websockets
+- Writing API documentation in collaboration with technical writers
+- Connecting external storage (REST, SDK), and integrating CTI/SIP systems
+- Deep expertise in NICE recording platform
 
 ---
 
