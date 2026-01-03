@@ -20,9 +20,9 @@ Career break to manage family health responsibilities while pursuing interests i
 Developed cyber security automation services for enterprise customers, focusing on Windows permission management and security vulnerability detection.
 
 **Responsibilities:**
-- LLD design and implementation of distributed, event-driven security automation solutions for enterprise environments, including automated Windows permission remediation, vulnerability detection, and supporting WPF administration tools
-- Developed production-grade systems with robust error handling, operational observability (metrics, logs, alerts), and crash recovery for reliable, scalable service delivery
-- Implemented message handling mechanisms using RabbitMQ consumers, per-transaction state machine logic, and memory-efficient streaming uploads to Azure Blob Storage; applied TPL Dataflow with bounded capacity and coordinated backpressure to ensure predictable throughput and constant memory usage
+- LLD design and implementation of distributed, robust, multithreaded, high-scale automation solutions and supporting WPF administration tools
+- Built reliable, observable systems with error handling, metrics, logging, and crash recovery for scalable service delivery
+- Designed and implemented event-driven message handling using RabbitMQ consumers, per-transaction state machines, and memory-efficient streaming uploads to Azure Blob Storage; scaled to process up to 100 TB per transaction with predictable throughput and constant memory usage via TPL Dataflow and coordinated backpressure
 
 **Technologies:** C# (.NET Framework 4.x), Multi-threading, MS SQL Server, RabbitMQ, WPF, Azure (Table Storage, Blob Storage, ADX/Kusto)
 
