@@ -26,24 +26,17 @@ Developed cyber security automation services for enterprise customers, focusing 
 
 **Technologies:** C# (.NET Framework 4.x), Multi-threading, MS SQL Server, RabbitMQ, WPF, Azure (Table Storage, Blob Storage, ADX/Kusto)
 
-### Senior C# Developer in the RTA Group
-**NICE - Raanana, Israel** | *Jan 2017 - 2019*
+### Senior C# Developer  
+**NICE – Raanana, Israel** | *October 2013 – February 2019*
 
-My group develops Voice Biometrics and Multi-Factor Authentication products for Enterprise. The product is comprised of many technological and logic packed services that require comprehensive and deep understanding for careful handling and agile version releasing.
-
-**Responsibilities:**
+**RTA Group:**
 - Led development and design for refactoring, high availability, and new features
 - Led customer integrations and development support activities
 
-### Senior C# Developer in the InfraDev Group
-**NICE - Raanana, Israel** | *Jan 2016 - Jan 2017*
-
-My group developed an API web service that enables sending commands to the NICE recording system. The challenges faced included providing a well-defined API with standard interfaces, a responsive, scalable, highly-available service, which is efficient in terms of performance and overloading of the underlying platform. The development process required cooperation with different teams, complying with security and maintainability standards.
-
-**Responsibilities:**
+**InfraDev Group:**
 - Developed Web API, WCF services, IIS hosting, and real-time event systems using Websockets
-- Writing API documentation in collaboration with technical writers
-- Connecting external storage (REST, SDK), and integrating CTI/SIP systems
+- Wrote API documentation in collaboration with technical writers
+- Connected external storage (REST, SDK), and integrated CTI/SIP systems
 - Deep expertise in NICE recording platform
 
 ---
