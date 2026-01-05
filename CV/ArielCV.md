@@ -2,7 +2,7 @@
 # Ariel Samin
 
 **Senior C# Developer**  
-Email: ariel.samin@gmail.com  Phone: 054-7535758 LinkedIn: [Ariel Samin](https://www.linkedin.com/in/ariel-samin-58a57b22/)
+Email: ariel.samin@gmail.com,  Phone: 054-7535758, LinkedIn: [Ariel Samin](https://www.linkedin.com/in/ariel-samin-58a57b22/)
 
 ---
 
@@ -28,7 +28,7 @@ Domain Knowledge: Cyber Security, Windows Permissions, Security Vulnerability De
 ## Work Experience
 
 **Nov 2024 – Present** 
-Career break to pursue interests in financial markets and trading and spend time with my family. Now seeking to return to professional software development.
+- Career break to pursue interests in financial markets and trading and spend time with my family. Now seeking to return to professional software development.
 
 **May 2019 – Nov 2024**: **Varonis** – **Senior C# Developer**
 - Designed and implemented distributed, event-driven automation services using C# (.NET), RabbitMQ, and Azure Blob Storage, scaling to process up to 100TB per transaction with constant memory usage and predictable throughput
