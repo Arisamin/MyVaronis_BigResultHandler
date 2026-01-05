@@ -29,8 +29,9 @@ Senior Software Engineer with 10+ years of experience developing server-side, di
 - Career break to pursue interests in financial markets and trading and spend time with my family. Now seeking to return to professional software development.
 
 **May 2019 – Nov 2024**: **Varonis** – **Senior C# Developer**
-- Designed and implemented distributed, event-driven automation services using C# (.NET), RabbitMQ, and Azure Blob Storage, scaling to process up to 100TB per transaction with constant memory usage and predictable throughput
+- Developed server-side features in various products related to windows permissions administration automation
 - Built robust, observable systems with advanced error handling, metrics, logging, and crash recovery, improving service reliability and uptime for enterprise customers
+- Implemented distributed, event-driven automation services using C# (.NET), RabbitMQ, and Azure Blob Storage, scaling to process up to 100TB per transaction with constant memory usage and predictable throughput
 - Led LLD (Low-Level Design) and delivery of high-scale, multithreaded solutions and WPF admin tools, supporting Windows permission management and security vulnerability detection
 
 **Oct 2013 – Feb 2019**: **NICE Systems** – **C# Developer**
