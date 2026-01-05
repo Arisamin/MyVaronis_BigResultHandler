@@ -14,10 +14,10 @@ Senior Software Engineer with 10+ years of experience developing server-side, di
 
 ## Skills
 **Languages & Frameworks**: C# (C Sharp), .NET Framework 4.x–4.8, .NET 5/6, SQL  
-Cloud & Infrastructure: Azure (ADX/Kusto, Table Storage, Blob Storage, Azure Portal)  
-Data & Messaging: MS SQL Server (Microsoft SQL Server), RabbitMQ (Advanced Message Queuing Protocol)  
-Development Practices: TDD (Test-Driven Development), Unit Testing (MS Test), SOLID, IOC, Agile/Scrum  
-CI/CD & Tools: Azure DevOps (TFS), Git, Visual Studio, Build Automation, Pipeline Development  
+**Cloud & Infrastructure**: Azure (ADX/Kusto, Table Storage, Blob Storage, Azure Portal)  
+**Data & Messaging**: MS SQL Server (Microsoft SQL Server), RabbitMQ (Advanced Message Queuing Protocol)  
+**Development Practices**: TDD (Test-Driven Development), Unit Testing (MS Test), SOLID, IOC, Agile/Scrum  
+**CI/CD & Tools**: Azure DevOps (TFS), Git, Visual Studio, Build Automation, Pipeline Development  
 
 ---
 
