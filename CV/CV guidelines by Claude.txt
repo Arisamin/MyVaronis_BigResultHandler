@@ -1,0 +1,149 @@
+## **The Modern CV Landscape: Two Critical Filters**
+
+### **1. The ATS (Applicant Tracking System) Filter - The Robot Gatekeeper**
+
+Around 98.4% of Fortune 500 companies use ATS scanners, and 75% of software resumes are rejected during the ATS screening process. This is your first hurdle.
+
+**What ATS Systems Look For:**
+- **Clean, parseable format**: Single-column layouts in reverse chronological order
+- **Standard section headings**: "Work Experience," "Education," "Skills" (not creative alternatives)
+- **Keywords matching the job description**: Technologies, programming languages, frameworks
+- **Simple formatting**: No tables, text boxes, headers/footers, or graphics
+- **Standard fonts**: Arial, Calibri, Helvetica (10-12pt)
+- **File format**: PDF from Word/Google Docs (text must be highlightable)
+
+**Why These Choices Matter:**
+ATS software literally cannot "see" fancy designs. Decorative fonts won't impress anyone; they'll just make your resume harder to read (or worse, unreadable to the ATS). A beautifully designed CV with columns, graphics, or unusual fonts will be parsed as gibberish, automatically rejecting you before a human ever sees it.
+
+### **2. The Human Filter - The 6-Second Scan**
+
+FAANG recruiters spend only about 6 seconds (or less) scanning resumes. They'll do a short scan gathering all key information: location, years of experience, languages and technologies, position names, company names, and anything else that stands out.
+
+**What Technical Recruiters Prioritize:**
+
+1. **Quantifiable Impact** (Most Important)
+   - Numbers, metrics, percentages showing your impact
+   - Use numbers and quantify whatever you can: number of users, service load numbers, number of customer support tickets you proactively resolved
+   - Example: "Reduced load time by 50%" beats "Improved performance"
+
+2. **Technical Skills Match**
+   - Immediate visibility of relevant technologies
+   - Skills section should be at the top, after contact info
+   - Both acronyms and full terms (e.g., "SEO (Search Engine Optimization)")
+
+3. **Career Progression**
+   - Clear growth trajectory from internships or junior roles moving up
+   - Staying at positions for at least one year
+
+4. **Relevant Experience**
+   - Most recent and relevant roles first
+   - Company names matter (well-known tech companies boost credibility)
+
+## **The Winning Formula: Popular CV Formats for 2025**
+
+### **Format #1: The "FAANG-Ready" Single-Column Resume**
+
+**Structure (in this exact order):**
+1. **Header**: Name, contact (phone, email, location, GitHub, LinkedIn)
+2. **Professional Summary** (2-3 sentences highlighting years of experience, key technologies, notable achievements)
+3. **Skills** (organized by category: Languages, Frameworks, Cloud, Tools, etc.)
+4. **Work Experience** (reverse chronological, with quantified bullet points)
+5. **Projects** (with GitHub links and metrics)
+6. **Education** (degree, school, graduation year)
+7. **Certifications** (if relevant)
+
+**Why This Works:**
+- The chronological format is widely considered the most ATS-friendly resume layout with clear, standard headings
+- Puts skills front and center where both ATS and humans look first
+- Your CV should be just one page long for those with less than 10 years of experience
+- Single column allows easy top-to-bottom scanning
+
+### **Format #2: The "Impact-First" Resume**
+
+Similar structure but emphasizes:
+- **Achievement-focused bullet points** using the formula: Action + Technology + Result
+- Example: "Designed event-driven message handling using RabbitMQ, scaling to process 100TB per transaction with predictable throughput"
+
+**Why This Works:**
+- Highlighting a few of your best achievements is better than including many "average" achievements
+- Directly addresses the recruiter's question: "What value will this person bring?"
+- Recruiters want to see what will add value to the company, especially knowledge of common programming languages, frameworks, tools, and technologies
+
+## **Critical Content Guidelines**
+
+### **Professional Summary (2-3 sentences max):**
+- State role, years of experience, core technologies, and one notable achievement
+- Use action words and active voice with the noun that describes your role
+- Example: "Senior Software Engineer with 5+ years designing distributed systems using C#, Azure, and RabbitMQ. Led migration to microservices architecture, reducing costs by 40%."
+
+### **Work Experience Bullets:**
+Use the **What-Why-Outcome** formula:
+- **What**: "Designed and implemented event-driven message handling"
+- **Technology**: "using RabbitMQ consumers and Azure Blob Storage"
+- **Outcome**: "scaling to process up to 100TB per transaction with constant memory usage"
+
+Write what and how you did things, not what a software engineer generally does.
+
+### **Skills Section:**
+- Organize by category (Languages, Frameworks, Cloud, DevOps, etc.)
+- Include both the full term and its acronym to ensure the ATS picks up on it
+- List skills relevant to the job description you're applying for
+
+### **Projects:**
+- Always link to GitHub or live demos
+- Include metrics or impact (users, stars, performance improvements)
+- Include at least 2 projects outlining key contributions, always linking the project name to GitHub
+
+## **What NOT to Include:**
+
+No fillers, personal details like birthdate, age, gender, marital status, religion, nationality, full native address, or salary expectations. Also avoid:
+- Generic objective statements ("seeking a challenging position")
+- Hobbies unless directly relevant and impressive
+- Full employment history if not relevant
+- GPA unless above 3.6/4.0 or 7.0/10.0
+
+## **The Technical Details:**
+
+### **File Format:**
+- PDF format only, not Word or Google Docs
+- Created from Word/Google Docs/LaTeX (never from Canva or graphic design tools)
+- Text must be easily highlightable
+
+### **Layout Specifics:**
+- 0.5-inch margins on all sides
+- No headers/footers (ATS can't read them)
+- No columns, tables, or text boxes
+- Consistent formatting (all bullets with or without periods, not mixed)
+
+### **Length:**
+- One page for <10 years experience
+- Maximum two pages for >10 years experience
+
+## **The Customization Secret:**
+
+Tailor each resume to the specific job you're applying to. Do NOT use the same resume for every application.
+
+**How to Customize:**
+1. Copy job description into a word frequency analyzer
+2. Identify key technologies and skills mentioned most
+3. Incorporate those exact keywords naturally into your resume
+4. Mirror the language used in the job description
+
+## **Why These Choices Work:**
+
+**From the HR/ATS Perspective:**
+- Standardized formatting = reliable parsing = your data gets into their system correctly
+- Keywords matching job description = high match score = you appear in their search results
+- Clean structure = no errors = you pass automated screening
+
+**From the Technical Recruiter Perspective:**
+- Immediate visibility of technical skills = quick assessment of fit
+- Quantified achievements = evidence of impact, not just responsibilities
+- One-page format = respects their time (they're reviewing hundreds of CVs)
+- GitHub links = ability to verify claims and see code quality
+- Clear progression = demonstrates growth and stability
+
+**The Bottom Line:**
+Modern tech hiring is a two-stage game. Stage 1 is beating the robot (ATS) with clean formatting and keywords. Stage 2 is impressing the human with quantifiable impact and relevant experience in the 6 seconds they'll spend scanning your CV. The "best" format is the one that successfully passes both filters.
+
+The CVs that work aren't the prettiest—they're the most strategically optimized for both automated systems and human psychology.
