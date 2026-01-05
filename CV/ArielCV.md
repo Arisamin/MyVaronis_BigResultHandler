@@ -2,11 +2,7 @@
 # Ariel Samin
 
 **Senior C# Developer**  
-Email: ariel.samin@gmail.com  
-Phone: 054-7535758  
-Location: Herzliya, Israel  
-GitHub: https://github.com/Arisamin  
-LinkedIn: [Your LinkedIn URL]
+Email: ariel.samin@gmail.com  Phone: 054-7535758 LinkedIn: [Ariel Samin](https://www.linkedin.com/in/ariel-samin-58a57b22/)
 
 ---
 
@@ -51,7 +47,3 @@ Career break to pursue interests in financial markets and trading and spend time
 BSc in Computer Science, Ben-Gurion University, 2013
 - Graduate project: Using Hidden Markov Models to detect anomalies in databases
 
----
-
-## Certifications
-- [Add relevant certifications if any]
