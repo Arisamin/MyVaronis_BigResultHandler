@@ -7,19 +7,17 @@ Email: ariel.samin@gmail.com,  Phone: 054-7535758, LinkedIn: [Ariel Samin](https
 ---
 
 ## Professional Summary
-Senior Software Engineer with 10+ years of experience developing distributed, multi-threaded systems using C# (.NET).
+Senior Software Engineer with 10+ years of experience developing server-side, distributed, multi-threaded systems using C# (.NET).
 
 ---
 
 
 ## Skills
-Languages & Frameworks: C# (C Sharp), .NET Framework 4.x–4.8, .NET 5/6, SQL, WPF (Windows Presentation Foundation), Autofac (IoC/DI)
+Languages & Frameworks: C# (C Sharp), .NET Framework 4.x–4.8, .NET 5/6, SQL
 Cloud & Infrastructure: Azure (ADX/Kusto, Table Storage, Blob Storage, Azure Portal)
 Data & Messaging: MS SQL Server (Microsoft SQL Server), RabbitMQ (Advanced Message Queuing Protocol)
-Development Practices: TDD (Test-Driven Development), Unit Testing (MS Test), Code Reviews, Agile/Scrum
+Development Practices: TDD (Test-Driven Development), Unit Testing (MS Test), SOLID, IOC, Agile/Scrum
 CI/CD & Tools: Azure DevOps (TFS), Git, Visual Studio, Build Automation, Pipeline Development
-Technical Expertise: Event-Driven Architecture, Multi-threading, Debugging, Troubleshooting
-Domain Knowledge: Cyber Security, Windows Permissions, Security Vulnerability Detection
 
 ---
 
