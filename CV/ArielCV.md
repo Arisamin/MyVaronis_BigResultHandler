@@ -32,7 +32,8 @@ Senior Software Engineer with 10+ years of experience developing server-side, di
 - Developed server-side features in various products related to windows permissions administration automation, and some maintenance for legacy front-end WCF applications
 - Built robust, observable systems with advanced error handling, metrics, logging, and crash recovery, **improving service reliability and uptime** for enterprise customers
 - Implemented distributed, event-driven automation services using C# (.NET), RabbitMQ, and Azure Blob Storage, scaling to process up to 100TB per transaction with constant memory usage and predictable throughput
-- Led LLD (Low-Level Design) and delivery of high-scale, multithreaded solutions and WPF admin tools, supporting Windows permission management and security vulnerability detection
+- Led LLD (Low-Level Design) and delivery of high-scale, multithreaded solutions
+- Created a GUI tool for automating boilerplate operations that were time consuming and prone to errors to simplify and speed up manual testing (started as hackathon then productized internally)
 - Participated in a company-wide campaign to replace obsolete packages, analyzing asset, nuspec, and nuget files, and fixing build pipelines across multiple products
 
 **Oct 2013 – Feb 2019**: **NICE Systems** – **C# Developer**
