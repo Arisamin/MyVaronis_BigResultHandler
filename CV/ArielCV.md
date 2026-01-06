@@ -38,10 +38,10 @@ Senior Software Engineer with 10+ years of experience developing server-side, di
 
 **Oct 2013 – Feb 2019**: **NICE Systems** – **C# Developer**
 - Developed server-side features in various products related to NICE Recording Platform
-- Led design and refactoring of high-availability, real-time event systems (Web API, WCF, Websockets), increasing system stability and customer satisfaction
+- Developed high-availability, real-time event systems (Web API, WCF, Websockets), increasing system stability and customer satisfaction
 - Integrated external storage (REST APIs, SDKs) and CTI/SIP systems, expanding platform capabilities and supporting diverse customer requirements
 - Authored API documentation and collaborated with technical writers to ensure clarity and usability for integration partners
-- Worked in customer-facing teams and provided development support during the initial years, handling tickets and bugs from the field
+- Worked in customer-facing teams and provided dev-support during the initial years, handling tickets and bugs from the field
 
 ---
 
