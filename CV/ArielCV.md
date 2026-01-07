@@ -29,8 +29,8 @@ Senior Software Engineer with 10+ years of experience developing server-side, di
 
 **May 2019 – Nov 2024**: **Varonis** – **Senior C# Developer**
 - Developed server-side features in various products related to windows permissions administration automation, and some maintenance for legacy front-end WCF applications
-- Conducted LLD (Low-Level Design) and delivery of distributed, multithreaded solutions, implementing robust error handling, metrics, logging, and crash recovery to ensure reliability, observability, and high uptime for enterprise customers
-- Implemented distributed, event-driven automation services using C# (.NET), RabbitMQ, and Azure Blob Storage, scaling to process up to 100TB per transaction with constant memory usage and predictable throughput
+- Conducted LLD (Low-Level Design) and delivery of distributed, multithreaded, event-driven solutions using C# (.NET), RabbitMQ, and Azure Blob with robust error handling, metrics, logging, crash recovery, and scaling to process up to 100TB per transaction with constant memory usage and predictable throughput to ensure reliability, observability, and high uptime for enterprise customers
+- Delivered clean, efficient, and well-modeled code, ensuring clear component responsibilities and maintainable architecture
 - Created a GUI tool for automating boilerplate operations that were time consuming and prone to errors to simplify and speed up manual testing (started as hackathon then productized internally)
 - Participated in a company-wide campaign to replace obsolete packages, analyzing asset, nuspec, and nuget files, and fixing build pipelines across multiple products
 
