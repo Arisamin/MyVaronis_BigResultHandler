@@ -67,6 +67,27 @@ Then I decided I need a break in my life to be more with my elderly mom who is s
     5. Looking back, is there anything you would have done differently to maximize your learning or impact at Varonis?
 
 4. How would you describe your main responsibilities and achievements in your most recent role?
+
+    **Answer:**
+    As a senior developer I partly mentored new incomers to the company and the team.
+    Providing overview of the product and code, assisting with their first tasks, etc.
+    Besides that I performed code reviews with emphasis on practices such as the clear definitions for classes and functions and proper modulation of components, as well as testability.
+    Besides that I took tasks like LLD and development.
+
+    My achievements are high standards of code so that everyone can understand it and work on it in a safe way due to clear design and test coverage.
+
+    **HR Responses:**
+    1. It’s great to hear you took an active role in mentoring and code reviews. How do you approach giving constructive feedback to team members?
+    2. Your focus on code clarity and testability is impressive. Can you share an example of how these practices improved team productivity or project outcomes?
+    3. Mentoring newcomers is important—what do you find most rewarding about helping others ramp up?
+    4. You mentioned LLD and development tasks. Was there a particular design or feature you’re especially proud of?
+
+    **HR Follow-up Questions:**
+    1. How do you balance mentoring and your own development work?
+    2. What strategies do you use to ensure code quality across the team?
+    3. Can you describe a time when you had to resolve a disagreement during a code review?
+    4. How do you measure the impact of your mentoring and code review efforts?
+
 5. Can you give an example of a challenging project you led or contributed to, and what the outcome was?
 6. What technologies are you most comfortable with, and how do you keep your skills up to date?
 7. How do you approach learning new tools or frameworks when required by a project?
