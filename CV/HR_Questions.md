@@ -41,20 +41,31 @@ Then I decided I need a break in my life to be more with my elderly mom who is s
 
 2. I see you took a career break recently—can you tell me more about that and what you learned during that time?
 
-**Answer:**
-I took the break to attend personal matters but also took the opportunity to learn about stock market trading.
-During that period AI also took a big leap in the world, and I combined my technological and software skill to develop tools that helped me in trading, in different languages and technologies - such as pinescript, python and using AI bots of different kinds.
-<!-- Feedback: Strong answer for a follow-up. Shows initiative, continuous learning, and practical application of tech skills during the break. Mentioning specific technologies is a plus. Could add a sentence about readiness to return to a software role. -->
+    **Answer:**
+    I took the break to attend personal matters but also took the opportunity to learn about stock market trading.
+    During that period AI also took a big leap in the world, and I combined my technological and software skill to develop tools that helped me in trading, in different languages and technologies - such as pinescript, python and using AI bots of different kinds.
+    <!-- Feedback: Strong answer for a follow-up. Shows initiative, continuous learning, and practical application of tech skills during the break. Mentioning specific technologies is a plus. Could add a sentence about readiness to return to a software role. -->
 
-**HR Follow-up Replies:**
+    **HR Follow-up Replies:**
 
-1. That’s impressive! It’s great to see you kept your technical skills sharp and explored new technologies during your break. How do you see these new skills benefiting your next role?
-2. Interesting—can you share more about the tools you developed and how that experience might translate to our work environment?
-3. It sounds like you were very proactive during your break. What motivated you to dive into AI and trading, and what did you enjoy most about that process?
-4. You mentioned developing in Python and using AI bots. Are you looking to bring these interests into your next position, or are you more focused on returning to enterprise software development?
-5. How do you feel about transitioning back to a full-time software engineering role after this period of independent work and learning?
+    1. That’s impressive! It’s great to see you kept your technical skills sharp and explored new technologies during your break. How do you see these new skills benefiting your next role?
+    2. Interesting—can you share more about the tools you developed and how that experience might translate to our work environment?
+    3. It sounds like you were very proactive during your break. What motivated you to dive into AI and trading, and what did you enjoy most about that process?
+    4. You mentioned developing in Python and using AI bots. Are you looking to bring these interests into your next position, or are you more focused on returning to enterprise software development?
+    5. How do you feel about transitioning back to a full-time software engineering role after this period of independent work and learning?
 
 3. What attracted you to Varonis, and what are you most proud of from your time there?
+
+    **Answer:**
+    What made me join Varonis was a good connection I felt with the manager I was interviewing for, and the sense that there is a strong technical leadership and a lot to learn from them.
+
+    **HR Follow-up Questions:**
+    1. Can you share an example of how that strong technical leadership influenced your work or growth at Varonis?
+    2. What qualities did you appreciate most in your manager, and how did they impact your experience?
+    3. Was there a particular project or challenge where you felt the benefit of the team’s technical strength?
+    4. How did you contribute to or learn from the technical culture at Varonis?
+    5. Looking back, is there anything you would have done differently to maximize your learning or impact at Varonis?
+
 4. How would you describe your main responsibilities and achievements in your most recent role?
 5. Can you give an example of a challenging project you led or contributed to, and what the outcome was?
 6. What technologies are you most comfortable with, and how do you keep your skills up to date?
