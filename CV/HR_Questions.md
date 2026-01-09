@@ -40,6 +40,20 @@ Then I decided I need a break in my life to be more with my elderly mom who is s
    <!-- Feedback: Clear preference for enterprise environments. Could add a sentence about what you value most (e.g., mentorship, structure, innovation). -->
 
 2. I see you took a career break recently—can you tell me more about that and what you learned during that time?
+
+**Answer:**
+I took the break to attend personal matters but also took the opportunity to learn about stock market trading.
+During that period AI also took a big leap in the world, and I combined my technological and software skill to develop tools that helped me in trading, in different languages and technologies - such as pinescript, python and using AI bots of different kinds.
+<!-- Feedback: Strong answer for a follow-up. Shows initiative, continuous learning, and practical application of tech skills during the break. Mentioning specific technologies is a plus. Could add a sentence about readiness to return to a software role. -->
+
+**HR Follow-up Replies:**
+
+1. That’s impressive! It’s great to see you kept your technical skills sharp and explored new technologies during your break. How do you see these new skills benefiting your next role?
+2. Interesting—can you share more about the tools you developed and how that experience might translate to our work environment?
+3. It sounds like you were very proactive during your break. What motivated you to dive into AI and trading, and what did you enjoy most about that process?
+4. You mentioned developing in Python and using AI bots. Are you looking to bring these interests into your next position, or are you more focused on returning to enterprise software development?
+5. How do you feel about transitioning back to a full-time software engineering role after this period of independent work and learning?
+
 3. What attracted you to Varonis, and what are you most proud of from your time there?
 4. How would you describe your main responsibilities and achievements in your most recent role?
 5. Can you give an example of a challenging project you led or contributed to, and what the outcome was?
