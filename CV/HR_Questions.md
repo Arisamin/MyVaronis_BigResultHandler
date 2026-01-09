@@ -89,6 +89,25 @@ Then I decided I need a break in my life to be more with my elderly mom who is s
     4. How do you measure the impact of your mentoring and code review efforts?
 
 5. Can you give an example of a challenging project you led or contributed to, and what the outcome was?
+
+    **Answer:**
+    We incepted a bunch of libraries that were developed by another team into our team, and had to handle tickets in that area.
+    While investigating it we were assisted by the developing team but still couldn't find the problem.
+    Going over the logs and code I found out that there are areas that were not covered by logs.
+    By adding the missing logs I found out a design flow related to disposal of data that should have been persisted during crash.
+    We then issued a refined practice to all the group of how to handle crash scenarios in design.
+
+    **HR Responses:**
+    1. That’s a great example of taking initiative and improving team practices. How did the group respond to the new guidelines?
+    2. It sounds like your attention to detail and persistence made a real impact. What was the most challenging part of this process for you?
+    3. Introducing new practices can be difficult—how did you ensure buy-in from the rest of the team?
+
+    **HR Follow-up Questions:**
+    1. Can you describe how you communicated the new crash handling practice to the group?
+    2. Were there any objections or challenges in getting others to adopt the new approach?
+    3. How do you measure the effectiveness of the changes you introduced?
+    4. Have you since encountered similar issues, and how did your new practice help?
+
 6. What technologies are you most comfortable with, and how do you keep your skills up to date?
 7. How do you approach learning new tools or frameworks when required by a project?
 8. Why are you interested in moving on from your last position, and what are you looking for in your next role?
