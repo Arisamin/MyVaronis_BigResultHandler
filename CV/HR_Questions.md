@@ -168,6 +168,30 @@ Then I decided I need a break in my life to be more with my elderly mom who is s
 
 10. Tell me about a time you had a conflict with a coworker or manager. How did you resolve it?
 
+    **Answer:**
+    During my work on the cross company libraries update I was certain that a dependency we wanted to remove was coming from a library that was handled by another member of this task force. He was saying it is not coming from there, I insisted it is, I suggested he would publish a draft version I could then load without it being published to anybody else, just so we can test this direction.
+    I always tend to find the technique or test case for a claim or argument so that everybody can see the same facts without the debate being subject to stands his ground harder.
+
+    **Feedback:**
+    This is a strong example. You demonstrate a solution-oriented approach to conflict, focusing on facts and testing rather than personal opinions. Suggesting a practical experiment to resolve the disagreement shows initiative, technical skill, and a collaborative mindset. You might add that this approach helped maintain a positive working relationship and led to a clear resolution.
+
+11. What motivates you at work?
+
+    **Answer:**
+    I am motivated by challenges and the sense of accomplishment that comes from solving complex problems and delivering high-quality software. I also value collaboration and learning from others, which is why I appreciate working in teams with strong technical leadership.
+
+    **HR Responses:**
+    1. It's great to hear that you find motivation in challenges and teamwork. Can you give an example of a challenging problem you solved that had a significant impact?
+    2. You mentioned the importance of technical leadership. Have you had experiences where you had to motivate or lead others? How did you approach that?
+    3. How do you maintain your motivation during repetitive or less challenging tasks?
+    4. What role do you think recognition and feedback play in maintaining your motivation at work?
+
+    **HR Follow-up Questions:**
+    1. Can you describe a specific instance where you overcame a significant challenge at work?
+    2. How do you handle situations when you feel unmotivated or face a setback?
+    3. What strategies do you use to stay engaged and motivated in long-term projects?
+    4. How important is the work culture and environment in keeping you motivated?
+
 ---
 
 ## Answers & Notes
