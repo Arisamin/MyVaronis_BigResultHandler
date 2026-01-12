@@ -109,6 +109,26 @@ Then I decided I need a break in my life to be more with my elderly mom who is s
     4. Have you since encountered similar issues, and how did your new practice help?
 
 6. What technologies are you most comfortable with, and how do you keep your skills up to date?
+
+    **Answer:**
+    I am comfortable with .Net and Windows technologies, since this is where most my experience is.
+    I keep my skills up to date on an ad-hoc basis, learning the technologies I am required to work with.
+    I don't usually experiment with new technologies on my free time.
+
+    **HR Responses:**
+    1. It's good to know your strengths. Can you give an example of a technology you had to learn quickly for a project?
+        - My response: A technology I had to learn for example, is writing kusto queries or learning to understand nuget, asset and nuspec files in order to investigate library dependencies under nuget.
+        - Feedback: Good – Gives a concrete example and shows practical learning on the job.
+    2. How do you approach learning a new framework or tool when it's required for your work?
+        - My response: First I ask to allocate some time or task at work for learning about the technology. Then I experiment a little bit with it to see that I understand it, and then learning with trial and error while working on the main task.
+        - Feedback: Good – Describes a structured approach to learning and adapting, which is valued by employers.
+    3. Are there any areas or technologies you would like to explore more in the future?
+        - My response: I'm not particullary interested in learning new technologies just for the sake of it, but rather when required to learn it for an upcoming task. But generally speaking, AI tools and the different ways that this technology can be utilized, is something that's interesting to me.
+        - Feedback: Sufficient – Honest and practical; mentioning AI as an area of interest adds a forward-looking touch.
+    4. How do you ensure you stay current with best practices in .Net development?
+        - My response: Talking to friends and peers is the main way for me to hear about trends and things going on.
+        - Feedback: Sufficient – Shows you stay connected to the community, but could be stronger if you also mentioned reading, courses, or following official sources.
+
 7. How do you approach learning new tools or frameworks when required by a project?
 8. Why are you interested in moving on from your last position, and what are you looking for in your next role?
 9. How do you handle feedback and performance reviews?
