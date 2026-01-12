@@ -130,7 +130,28 @@ Then I decided I need a break in my life to be more with my elderly mom who is s
         - Feedback: Sufficient – Shows you stay connected to the community, but could be stronger if you also mentioned reading, courses, or following official sources.
 
 7. How do you approach learning new tools or frameworks when required by a project?
+
+    **See answer and discussion in Question 6 above.**
+
 8. Why are you interested in moving on from your last position, and what are you looking for in your next role?
+
+    **Answer:**
+    I left my previous position with the aim of spending time with my mother and doing things for her, and coming back to the job market I pretty much look for a similar position.
+
+    **HR Responses:**
+    1. Thank you for sharing. Are there any particular aspects of your previous role or company that you hope to find again in your next position?
+        - **Your Response:** I would prefer working with similar technologies, since I already feel comfortable with them. Besides, having strong technical people overseeing my work and providing meaningful and constructive feedbacks is the way for me to learn and grow.
+        - **Feedback:** This is a strong answer. It shows self-awareness, a desire for growth, and appreciation for mentorship and technical excellence. Consider mentioning openness to learning new technologies as well, if true.
+    2. Is there anything you would like to do differently or improve upon in your next role?
+        - **Your Response:** Not particularly.
+        - **Feedback:** Honest and concise. If you want to strengthen this, you could mention a willingness to adapt or continuously improve as a general value.
+    3. How do you feel your time away has influenced what you’re looking for in a new job?
+        - **Your Response:** The time away gave me perspective about life and how I want to invest and distribute my time. I wish do have a good work and providing, but I also want to have time for my personal life.
+        - **Feedback:** This is a thoughtful answer. It shows maturity and a healthy approach to work-life balance, which is valued by many employers.
+    4. What would make you feel fulfilled and engaged in your next position?
+        - **Your Response:** Good collaboration with team mates and the feeling of being helpful to the business and my team.
+        - **Feedback:** Excellent. This highlights teamwork and impact, both of which are highly regarded qualities.
+
 9. How do you handle feedback and performance reviews?
 10. What are your long-term career goals, and how does this position fit into them?
 
