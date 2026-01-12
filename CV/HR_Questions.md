@@ -153,7 +153,20 @@ Then I decided I need a break in my life to be more with my elderly mom who is s
         - **Feedback:** Excellent. This highlights teamwork and impact, both of which are highly regarded qualities.
 
 9. How do you handle feedback and performance reviews?
-10. What are your long-term career goals, and how does this position fit into them?
+
+    **Answer:**
+    Of course I enjoy receiving good feedbacks and receiving criticism is less nice, since it points out things that I have not done to the satisfaction of my employers. However, I understand it's a crucial part of being employed and knowing what are the employer's expectations, so I'd know where to meet them.
+
+    1) For a constructive criticism I would usually say "thank you" and take to my attention what are the things that I should keep doing more of.
+        - **Feedback:** This is a mature and professional approach. Acknowledging feedback and expressing gratitude shows emotional intelligence and a willingness to improve.
+    2) I think feedbacks and criticism included in it, should and can come from everybody. It's not something that is saved to happened vertically in the hierarchy, but also sideways. It's the way to get along with the environment.
+        - **Feedback:** Excellent point. Openness to feedback from all directions demonstrates humility and a collaborative mindset. You might add that you also try to give constructive feedback to others when appropriate.
+    3) I take it into my attention when somebody expresses what are his expectations of me and I usually remember that, because my intention is to get along with my work environment. I then adjust my actions accordingly. If I have some push back to give to the criticism I will also sound it, as this is a two-way street. I would expect my peers and managers to treat me as I treat them, which is in a respectful professional manner.
+        - **Feedback:** This is a strong answer. It shows you value mutual respect and are proactive in adapting, while also being willing to communicate your own perspective.
+    4) If I don't agree with the feedback I would take into consideration that I could be wrong. If unclear to me I will ask for clarification, and if I disagree I will speak my mind. But if I do find the feedback correct I would take it to my attention and adjust. Of course there's always the authority to determine the standards and practices in the work place, so the alignment should be according to that.
+        - **Feedback:** Very thoughtful. This demonstrates self-awareness, openness to learning, and respect for workplace standards. It’s good to show you balance assertiveness with adaptability.
+
+10. Tell me about a time you had a conflict with a coworker or manager. How did you resolve it?
 
 ---
 
