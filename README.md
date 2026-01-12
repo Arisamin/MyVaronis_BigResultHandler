@@ -7,7 +7,9 @@
   - `Ariel_CV_Original.pdf`: Original CV in PDF format
   - `CV guidelines by Claude.txt`/`.pdf`: Modern CV writing guidelines
   - `CV_FEEDBACK.md`: Feedback and review notes
-  - `HR_Questions.md`: HR interview questions and answers <!-- Added -->
+  - `HR_Questions.md`: HR interview questions and answers
+  - `Arithmetic_Interview_Questions.md`: Arithmetic interview questions (logic/arithmetic without operators/loops)
+  - `Logic_Programming_Interview_Questions.md`: Classic logic and programming interview questions
 - `docs/` — Technical documentation and design files:
   - `ARCHITECTURE.md`: High-level and component architecture of BigResultHandler
   - `architecture-diagram.html`/`architecture.mermaid`: Visual diagrams of system architecture
@@ -26,7 +28,9 @@
 - **Ariel_CV_Original.pdf**: The original CV for reference and backup.
 - **CV guidelines by Claude.txt**: Modern CV writing best practices and structure, used to guide the rewrite of `ArielCV.md`.
 - **CV_FEEDBACK.md**: Peer or reviewer feedback to help improve the CV.
-- **HR_Questions.md**: HR interview questions and answers, with space for your responses. <!-- Added -->
+- **HR_Questions.md**: HR interview questions and answers, with space for your responses.
+- **Arithmetic_Interview_Questions.md**: Arithmetic interview questions (logic/arithmetic without operators/loops), with space for your answers.
+- **Logic_Programming_Interview_Questions.md**: Classic logic and programming interview questions, with space for your answers.
 - **ARCHITECTURE.md**: Explains the overall system design, major components, and their interactions in BigResultHandler.
 - **architecture-diagram.html** / **architecture.mermaid**: Visual diagrams to help understand the system at a glance.
 - **CRASH_RECOVERY.md**: Details the crash recovery strategy, ensuring data integrity and service reliability.
