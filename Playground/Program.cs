@@ -9,10 +9,87 @@ namespace Playground
     {
         static void Main(string[] args)
         {
-            Fib(5);
+            CheckBInaryTreeBalance();
+            //Fib(5);
             //RunFlattenList();
         }
 
+        static void CheckBInaryTreeBalance()
+        {
+
+            // balanced
+            //      1
+            //    /   \
+            //   2     3
+            //  / \   / \
+            // 4   5 6   7
+            var root = new TreeNode<int>(1,
+                new TreeNode<int>(2,
+                    new TreeNode<int>(4),
+                    new TreeNode<int>(5)
+                ),
+                new TreeNode<int>(3,
+                    new TreeNode<int>(6),
+                    new TreeNode<int>(7)
+                )
+            );
+
+            // unbalanced
+            //      1
+            //    /   \
+            //   2     3
+            //  / \   
+            // 4   5 
+            // var root = 
+            //     new TreeNode<int>(
+            //         1,
+            //         new TreeNode<int>(2,
+            //             new TreeNode<int>(4),
+            //             new TreeNode<int>(5)
+            //         ),
+            //         new TreeNode<int>(3)
+            //     );
+
+            Console.WriteLine(IsBalancedTree(root) ? "Balanced" : "Not Balanced");
+        }
+
+        static bool IsBalancedTree(TreeNode<int> r)
+        {
+            var left = CountNodes(r.Left, 0);
+            var right = CountNodes(r.Right, 0);
+            
+            Console.WriteLine($"Left: {left}, Right: {right}");
+
+            return Math.Abs(left - right) <= 1;
+        }
+
+        static int CountNodes(TreeNode<int> t, int count)
+        {
+            if (t == null)
+                return count;
+
+            count++;
+            
+            var withLeft = CountNodes(t.Left, count);
+                
+            var withRight = CountNodes(t.Right, withLeft);
+            
+            return withRight;
+        }
+
+        // Fib(5)
+        //    1) Fib(4)
+        //        1) Fib(3)
+        //            1) Fib(2) = 1 // "1"
+        //            2) Fib(1) = 1 // "1"
+        //          => "2"
+        //        2) Fib(2) = 1 // "1"
+        //       => "3"
+        //    2) Fib(3)
+        //        1) Fib(2) = 1 // "1"
+        //        1) Fib(1) = 1 // "1"
+        //       => "2"
+        //  => "5"
         static int Fib(int n)
         {
             if(n == 0)
@@ -27,8 +104,8 @@ namespace Playground
                 return 1;
             }
 
-            f1 = Fib(n-1);
-            f2 = Fib(n-2);
+            var f1 = Fib(n-1);
+            var f2 = Fib(n-2);
 
             Console.WriteLine(f1 + f2);
 
@@ -100,6 +177,20 @@ namespace Playground
             }
 
             return flat;
+        }
+    }
+
+    public class TreeNode<T>
+    {
+        public T Value;
+        public TreeNode<T> Left;
+        public TreeNode<T> Right;
+
+        public TreeNode(T value, TreeNode<T> left = null, TreeNode<T> right = null)
+        {
+            Value = value;
+            Left = left;
+            Right = right;
         }
     }
 }
