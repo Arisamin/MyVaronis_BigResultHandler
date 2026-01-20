@@ -9,7 +9,30 @@ namespace Playground
     {
         static void Main(string[] args)
         {
-            RunFlattenList();
+            Fib(5);
+            //RunFlattenList();
+        }
+
+        static int Fib(int n)
+        {
+            if(n == 0)
+            {
+                Console.WriteLine("0");
+                return 0;
+            }
+                
+            if(n <= 2)
+            {
+                Console.WriteLine("1");
+                return 1;
+            }
+
+            f1 = Fib(n-1);
+            f2 = Fib(n-2);
+
+            Console.WriteLine(f1 + f2);
+
+            return f1 + f2;
         }
 
         static void RunFlattenList()
