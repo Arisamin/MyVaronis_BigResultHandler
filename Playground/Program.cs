@@ -9,9 +9,156 @@ namespace Playground
     {
         static void Main(string[] args)
         {
-            CheckBInaryTreeBalance();
+            RunRotateArray();
+            //LowestCommonAncestorCase();
+            //CheckBInaryTreeBalance();
             //Fib(5);
             //RunFlattenList();
+        }
+
+        static void RunRotateArray()
+        {
+            object[] arr = new object[] { 1, 2, 3, 4, 5 };
+
+            Console.WriteLine("Original array:");
+            PrintArray(arr);
+
+            int steps = 2;
+            var rotatedArr = Rotate(arr, steps);
+
+            Console.WriteLine($"Array after rotating {steps} steps:");
+            PrintArray(rotatedArr);
+        }
+
+        static object[] Rotate(object[] a, int s)
+        {
+            for(int i=1 ; i<=s ; i++)
+                a = RotateOnce(a);
+            
+            return a;
+        }
+
+        static object[] RotateOnce(object[] a)
+        {
+            object spare = a[a.Length-1];
+            
+            for(int i=a.Length-1 ; i>0 ; i--)
+                a[i] = a[i-1];
+
+            a[0] = spare;
+            
+            return a;
+        }
+
+        // Prints the values of an array, separated by spaces
+        static void PrintArray<T>(T[] arr)
+        {
+            if (arr == null)
+            {
+                Console.WriteLine("(null array)");
+                return;
+            }
+            Console.WriteLine(string.Join(" ", arr));
+        }
+
+        static void LowestCommonAncestorCase()
+        {
+            // Example tree:
+            //     			  1
+            //     		  /  	   \
+            //     		2			 3
+            //     	  /  \			/ \
+            //     	4	   5	   6   7
+            //    /  \      \	  /     \
+            //   7	  8      9   10     11
+            var root = new TreeNode<int>(1,
+                new TreeNode<int>(2,
+                    new TreeNode<int>(4,
+                        new TreeNode<int>(7),
+                        new TreeNode<int>(8)
+                    ),
+                    new TreeNode<int>(5,
+                        null,
+                        new TreeNode<int>(9)
+                    )
+                ),
+                new TreeNode<int>(3,
+                    new TreeNode<int>(6,
+                        new TreeNode<int>(10),
+                        null
+                    ),
+                    new TreeNode<int>(11)
+                )
+            );
+
+            // var node8 = new TreeNode<int>(12); // not in tree
+            var node8 = root.Left.Left.Right; // 8
+            var node9 = root.Left.Right.Right; // 9
+
+            var lca = LowestCommonAncestor(root, node8, node9);
+
+            if(lca == null)
+            {
+                Console.WriteLine("Lowest Common Ancestor not found");
+                return;
+            }
+
+            Console.WriteLine($"Lowest Common Ancestor of {node8.Value} and {node9.Value} is: {lca.Value}");
+        } 
+
+        static TreeNode<T> LowestCommonAncestor<T>(TreeNode<T> r, TreeNode<T> a, TreeNode<T> b)
+        {
+            var nodePathA = FindPath(r, a, new TreeNode<T>[0]);
+            var nodePathB = FindPath(r, b, new TreeNode<T>[0]);
+
+            if(nodePathA == null || nodePathB == null)
+                return null;
+            
+            TreeNode<T> commonAnc = null;
+            
+            for(int i = 0 ; i<nodePathA.Length && i<nodePathB.Length ; i++)
+                if(nodePathA[i] == nodePathB[i])
+                    commonAnc = nodePathA[i];
+                    
+            return commonAnc;
+        }
+
+        static TreeNode<T>[] FindPath<T>(TreeNode<T> r, TreeNode<T> x, TreeNode<T>[] accPath)
+        {
+            accPath = AddToTail(accPath, r);
+            
+            if(ReferenceEquals(r, x))
+                return accPath;
+                
+            TreeNode<T>[] leftPath = null;
+            TreeNode<T>[] rightPath = null;
+                
+           	if(r.Left != null)
+            {
+                leftPath = FindPath(r.Left, x, accPath);
+                if(leftPath != null)
+                    return leftPath;
+            }
+                
+            if(r.Right != null)
+            {
+                rightPath = FindPath(r.Right, x, accPath);
+                if(rightPath != null)
+                    return rightPath;
+            }
+            
+            return null;
+        }
+
+        public static T[] AddToTail<T>(T[] array, T item)
+        {
+            if (array == null)
+                return new T[] { item };
+
+            T[] result = new T[array.Length + 1];
+            Array.Copy(array, result, array.Length);
+            result[array.Length] = item;
+            return result;
         }
 
         static void CheckBInaryTreeBalance()
