@@ -1,0 +1,122 @@
+# Preparation for mPrest Software Developer Interview
+
+## 1. Interview Structure
+- Screening: Initial HR or recruiter call to discuss your background and motivation.
+- Technical Interview(s): Usually 1–2 rounds, focused on coding, algorithms, and system design.
+- Practical Task: You may be given a take-home assignment or live coding exercise (often in C#, Java, or Python).
+- Team/Manager Interview: Discussion about your experience, teamwork, and fit for their agile environment.
+- Final Interview: Sometimes with senior management or CTO, especially for senior roles.
+
+## 2. Technical Focus
+
+### C#/.NET Fundamentals & OOP
+- What are value types vs. reference types in C#? (OOP, memory)
+- How does garbage collection work in .NET? (Memory management)
+- What is the difference between `interface` and `abstract class`? (OOP)
+- How does inheritance work in C#? What is method overriding vs. method hiding? (OOP)
+- What is the difference between `==` and `.Equals()`? (Equality, OOP)
+- How do you override `GetHashCode` and `Equals`? (Equality, OOP)
+- What are extension methods? (OOP, language features)
+- What are attributes and how do you use reflection? (Language features)
+
+### Delegates, Events, and LINQ
+- What are delegates and events? How do you use them? (Delegates/events)
+- What is LINQ and how is it used? (LINQ, collections)
+
+### Generics & Collections
+- How do you implement and use generics? (Generics)
+- What is the difference between `IEnumerable`, `ICollection`, and `IList`? (Collections)
+- How do you serialize and deserialize objects in C#? (Serialization)
+## 3. Domain-Specific Areas
+### Exception Handling & Asynchronous Programming
+- How does exception handling work in C#? (Exceptions)
+- What are async/await and how does asynchronous programming work in .NET? (Async)
+- Real-Time Systems: Questions about latency, throughput, and reliability.
+### Multithreading & Dependency Injection
+- How do you implement thread safety and use locking mechanisms? (Multithreading)
+- What is dependency injection and why is it useful? (Design patterns, architecture)
+- Distributed Systems: Message queues, event-driven architecture, microservices.
+- IoT/Industrial: Protocols, device management, telemetry, and data pipelines.
+
+## 4. Behavioral & Soft Skills
+- Teamwork: Agile methodologies, working in cross-functional teams.
+- Problem Solving: How you approach complex, ambiguous problems.
+- Communication: Explaining technical concepts clearly.
+
+## 5. Tips
+- Review C#/.NET fundamentals, especially for backend roles.
+- Practice system design interviews (real-time, distributed, scalable systems).
+- Be ready to discuss past projects, especially those involving mission-critical or high-availability systems.
+- Prepare for practical coding and debugging exercises.
+- Show curiosity about their products (energy, defense, IoT) and ask questions about their tech stack and challenges.
+
+---
+
+
+---
+
+## Data Structures Reference
+
+### 1. Core Data Structures
+- **Arrays:** Fixed-size, fast access by index, slow insert/delete except at end.
+- **Lists (LinkedList):** Dynamic size, fast insert/delete at ends, slow random access.
+- **Stacks:** LIFO (Last-In-First-Out), push/pop operations, used for recursion, parsing.
+- **Queues:** FIFO (First-In-First-Out), enqueue/dequeue, used for scheduling, BFS.
+- **Hash Tables (Dictionary/Map):** Key-value storage, fast lookup/insert/delete, handle collisions.
+- **Trees (Binary, BST, AVL, Heap):** Hierarchical, used for searching, sorting, priority queues.
+- **Graphs:** Nodes and edges, can be directed/undirected, used for network, dependency, and pathfinding problems.
+
+### 2. Operations to Know
+- How to insert, delete, search, and traverse each structure.
+- Time and space complexity for each operation (Big O notation).
+- When to use each structure (trade-offs).
+
+### 3. Implementation Details
+- How to implement a linked list, stack, or queue from scratch.
+- How to traverse trees (in-order, pre-order, post-order, level-order).
+- How to represent graphs (adjacency list vs. matrix).
+
+### 4. Common Interview Problems
+- Reverse a linked list.
+- Detect a cycle in a linked list or graph.
+- Find the kth largest/smallest element.
+- Implement a queue using two stacks.
+- Use a hash table to count occurrences or find duplicates.
+
+### 5. Advanced Topics (for senior/real-time roles)
+- Thread-safe collections (ConcurrentQueue, locks).
+- Custom data structures for performance (ring buffer, trie).
+- Memory usage and cache efficiency.
+
+### 6. Practical Tips
+- Be able to explain your choice of data structure for a given problem.
+- Know how to optimize for time vs. space.
+- Practice coding basic structures without using built-in libraries.
+
+---
+
+## Questions and Answers
+
+**Q: What is the difference between value types and reference types in C#? Give examples of each.**
+
+A: Value types are types that are created directly on the stack when declared in the code. When they are passed to a method they are passed by value—meaning a copy of them is passed. Examples include integers and structs.
+
+Reference types are types that are created on the stack when declared in the code (the compiler is enforcing their creation through constructors (new keyword)). When they are passed into functions they are passed by reference (pointer to the actual object on the stack), which means that changes that are applied to the object inside the function are effective outside of it as well. Examples include strings or arrays.
+
+**Q: What is the difference between passing a reference type to a method normally, and passing it with the `ref` keyword? What does `ref` mean for reference types?**
+
+A: Passing a reference type to a method normally allows the method to modify the object's data, and those changes are visible outside the method. However, if the method assigns a new object to the parameter, this change is local to the method—the original reference outside the method remains unchanged.
+
+**Q: How does garbage collection work in .NET? When is an object eligible for collection?**
+
+A: .NET GC uses three generations: Gen 0 (new/short-lived), Gen 1 (medium-lived), Gen 2 (long-lived/large objects). New objects are allocated in Gen 0 (unless large, then Gen 2/LOH). Surviving objects are promoted to higher generations and may be moved in memory (except large objects, which are not compacted). An object is eligible for collection when it is unreachable from any live code (roots). Finalization, if present, adds extra work to the GC cycle. The GC is non-deterministic and collections occur as needed for memory management and performance.
+
+#### Key Concepts & Interview Issues from Discussion
+- Objects are allocated in generations: Gen 0 (new), Gen 1 (survived one collection), Gen 2 (long-lived/large objects).
+- Most objects die young; Gen 0 is collected most frequently and quickly.
+- Surviving objects are promoted to higher generations and are moved in memory (except large objects).
+- Large objects (≥85,000 bytes) are allocated directly in Gen 2 (Large Object Heap) and are not compacted by default.
+- Gen 2 collections are less frequent but more expensive; LOH fragmentation can occur.
+- Finalization (destructors) adds extra work to GC cycles if present in unreachable objects.
+- The GC is non-deterministic: you cannot predict exactly when collection will occur.
+- Generational GC optimizes for performance by focusing frequent collections on short-lived objects and less frequent collections on long-lived/large objects.
