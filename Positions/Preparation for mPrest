@@ -103,6 +103,16 @@ A: Value types are types that are created directly on the stack when declared in
 
 Reference types are types that are created on the stack when declared in the code (the compiler is enforcing their creation through constructors (new keyword)). When they are passed into functions they are passed by reference (pointer to the actual object on the stack), which means that changes that are applied to the object inside the function are effective outside of it as well. Examples include strings or arrays.
 
+[Chat answer]
+**Value types** (e.g., `int`, `double`, `struct`) store their data directly, and assignment or parameter passing **copies the value**. They are **usually stored on the stack, but can also be on the heap** (for example, as part of a class or array).
+
+**Reference types** (e.g., `class`, `string`, `array`) store a **reference to the actual data, which is always on the heap**. Assignment or parameter passing **copies the reference (not the object itself)**, so multiple variables can refer to the same object. **Modifying the object through one reference is visible to all references.**
+
+**Key differences:**
+- **Value types: assignment and parameter passing copies the value.**
+- **Reference types: assignment and parameter passing copies the reference, not the object.**
+- **Reference type objects are always on the heap; value types can be on the stack or heap.**
+
 **Q: What is the difference between passing a reference type to a method normally, and passing it with the `ref` keyword? What does `ref` mean for reference types?**
 
 A: Passing a reference type to a method normally allows the method to modify the object's data, and those changes are visible outside the method. However, if the method assigns a new object to the parameter, this change is local to the method—the original reference outside the method remains unchanged.
