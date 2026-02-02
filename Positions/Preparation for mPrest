@@ -120,3 +120,33 @@ A: .NET GC uses three generations: Gen 0 (new/short-lived), Gen 1 (medium-lived)
 - Finalization (destructors) adds extra work to GC cycles if present in unreachable objects.
 - The GC is non-deterministic: you cannot predict exactly when collection will occur.
 - Generational GC optimizes for performance by focusing frequent collections on short-lived objects and less frequent collections on long-lived/large objects.
+
+**Q: What is the difference between an `interface` and an `abstract class` in C#? When would you use each?**
+
+A: An interface is a contract that an implementing class must adhere to by implementing the exact signatures (methods, properties, events) defined in the interface. An abstract class is similar to an interface in that it defines a contract, but it can also include implementation of functionality in addition to abstract members. 
+
+Key differences:
+- An interface cannot have implementation; an abstract class can.
+- A class can implement multiple interfaces but can inherit from only one abstract class.
+- Use an interface to define a contract/behavior that unrelated classes should follow. Use an abstract class to define a base class for related classes that share common functionality.
+
+Additional considerations:
+- **C# 8.0+ enhancement:** Interfaces can now have default implementations (concrete methods), which blurs the traditional line between interfaces and abstract classes.
+- **Access modifiers:** Abstract classes can have private/protected members; interfaces can only have public members.
+- **Constructors:** Abstract classes can have constructors; interfaces cannot.
+- **State:** Abstract classes can have fields with state; interfaces cannot (only properties).
+
+**Q: How does inheritance work in C#? What is the difference between method overriding and method hiding?**
+
+A: Inheritance in C# is implemented using a vTable (virtual method table) which maps the overloads of a member to its respective object in the hierarchy. 
+
+**Method Overriding:**
+- To override a method, it must first be marked as `virtual` in the base class.
+- The derived class uses the `override` keyword to override the virtual method.
+- Both the virtual method and its override exist in the vTable, and the correct version is called based on the actual object type at runtime (polymorphism).
+- The base class method can be accessed from the derived class using the `base` keyword if needed.
+
+**Method Hiding:**
+- Method hiding occurs when a derived class implements a signature that already exists in the base class, but does not want the base class behavior and does not want the base class method to be accessible through polymorphism.
+- To hide a method, the derived class uses the `new` keyword on the method signature.
+- This breaks the polymorphic chain for that method; calls through a base class reference will use the base version, while calls through a derived class reference will use the hidden version.
