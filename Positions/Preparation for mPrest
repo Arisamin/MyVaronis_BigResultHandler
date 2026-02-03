@@ -191,3 +191,21 @@ A: In C#, **primitive types** are a subset of **value types**.
 **Primitive types** are built-in value types provided by the language and CLR. They are the fundamental building blocks for other types and have direct language support for literals and operators. They directly map to CLR types (e.g., `int` = `System.Int32`) and are optimized by the runtime.
 
 **Key relationship:** All primitive types are value types, but not all value types are primitive types (e.g., custom structs are value types but not primitive types).
+
+**Q: What is the difference between `==` and `.Equals()` in C#? When should you use each?**
+
+A: `==` by default is a value equality operator, while `Equals()` usually does deep comparison of objects—comparing them by the equality of their members.
+
+For value types (except for structs), using `==` is equivalent to comparing them by `Equals()`, because comparing their values is what `Equals` will do for them.
+
+For reference types, comparing with `==` will compare their references (pointers). While two different objects can have different pointers, semantically they may be equal because their internal data is the same. In this case, `==` is not the correct way to semantically compare them.
+
+[Chat GPT comments]
+Your answer is excellent and demonstrates a solid understanding of the distinction. Here are some areas to expand on for a more comprehensive interview answer:
+
+- **Operator overloading:** Mention that both `==` and `Equals()` can be overloaded. By default, `==` for reference types compares references, but classes can override this to compare semantically (e.g., `string` overloads `==` to compare content, not references).
+- **String special case:** Strings are reference types, but `==` and `Equals()` both compare their content, not references, because string overloads `==`. This is a common gotcha.
+- **Null safety:** Note that `==` handles null gracefully, while `Equals()` can throw a `NullReferenceException` if called on a null reference (though it's safer to use `?.Equals()` or check for null first).
+- **Performance:** `Equals()` is a virtual method call, while `==` is typically faster (but can be overloaded, so this isn't always true). For performance-critical code, `==` is usually preferred.
+- **Best practice:** Override both `==` and `Equals()` consistently if implementing a custom type; they should produce the same results. Also override `GetHashCode()` when overriding `Equals()` to maintain consistency with hash-based collections.
+- **IEquatable<T>:** For value types and when performance matters, implementing `IEquatable<T>` and overriding `Equals()` avoids boxing and is more efficient than relying on the default implementation.
