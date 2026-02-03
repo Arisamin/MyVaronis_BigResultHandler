@@ -72,6 +72,18 @@
 - Reverse a linked list.
 **Crucial .NET internals:**
 When you use methods like `List<T>.Contains()` or `List<T>.IndexOf()`, the equality comparison is performed by `EqualityComparer<T>.Default`. This comparer automatically checks if your type `T` implements `IEquatable<T>`. If so, it uses your `Equals(T other)` method for comparisons. If not, it falls back to using `object.Equals()`. This means that implementing `IEquatable<T>` directly affects how these collection methods determine equality, and is the recommended way to provide custom equality logic for your types in .NET collections.
+
+**List<T> methods using EqualityComparer<T>.Default:**
+Several methods of `List<T>` use `EqualityComparer<T>.Default` to determine equality:
+- `Contains(T item)`
+- `IndexOf(T item)`
+- `LastIndexOf(T item)`
+- `Remove(T item)`
+- `RemoveAll(Predicate<T> match)` (indirectly, if you use equality in the predicate)
+These methods will use your custom equality logic if you implement `IEquatable<T>`, otherwise they use `object.Equals()`.
+
+**What is EqualityComparer<T>.Default?**
+`EqualityComparer<T>.Default` is a built-in .NET singleton that provides the default way to compare two objects of type `T` for equality and to get their hash codes. If your type implements `IEquatable<T>`, it uses your `Equals(T other)` method; otherwise, it falls back to `object.Equals()`. This mechanism ensures that collections like `List<T>`, `Dictionary<TKey, TValue>`, and `HashSet<T>` use the most efficient and type-appropriate equality logic available.
 - Detect a cycle in a linked list or graph.
 - Find the kth largest/smallest element.
 
@@ -198,6 +210,12 @@ Your answer is excellent and demonstrates a solid understanding of the distincti
 - **Performance:** `Equals()` is a virtual method call, while `==` is typically faster (but can be overloaded, so this isn't always true). For performance-critical code, `==` is usually preferred.
 - **Best practice:** Override both `==` and `Equals()` consistently if implementing a custom type; they should produce the same results. Also override `GetHashCode()` when overriding `Equals()` to maintain consistency with hash-based collections.
 - **IEquatable<T>:** For value types and when performance matters, implementing `IEquatable<T>` and overriding `Equals()` avoids boxing and is more efficient than relying on the default implementation.
+
+**How List<T> uses IEquatable<T> and EqualityComparer<T>.Default:**
+Many methods of `List<T>`—such as `Contains(T item)`, `IndexOf(T item)`, `LastIndexOf(T item)`, and `Remove(T item)`—use `EqualityComparer<T>.Default` to determine equality. This comparer checks if your type implements `IEquatable<T>`, and if so, uses your `Equals(T other)` method. Otherwise, it falls back to `object.Equals()`. This is why implementing `IEquatable<T>` is crucial for custom value or reference types: it ensures your equality logic is used by .NET collections and their search/removal methods.
+
+**What is EqualityComparer<T>.Default?**
+`EqualityComparer<T>.Default` is a built-in singleton that provides the default way to compare two objects of type `T` for equality and to get their hash codes. It automatically uses your `IEquatable<T>.Equals` implementation if present, otherwise it uses `object.Equals()`. This mechanism is used by collections like `List<T>`, `Dictionary<TKey, TValue>`, and `HashSet<T>` to ensure efficient and type-appropriate equality checks.
 
 **Q: How do you override `GetHashCode()` and `Equals()` in C#? Why is it important to override both together?**
 
