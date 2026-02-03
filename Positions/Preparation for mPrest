@@ -121,6 +121,23 @@ A: Passing a reference type to a method normally allows the method to modify the
 
 A: .NET GC uses three generations: Gen 0 (new/short-lived), Gen 1 (medium-lived), Gen 2 (long-lived/large objects). New objects are allocated in Gen 0 (unless large, then Gen 2/LOH). Surviving objects are promoted to higher generations and may be moved in memory (except large objects, which are not compacted). An object is eligible for collection when it is unreachable from any live code (roots). Finalization, if present, adds extra work to the GC cycle. The GC is non-deterministic and collections occur as needed for memory management and performance.
 
+**Q: What is boxing and unboxing in C#? When do they occur, and what are the performance implications?**
+
+A: Boxing is the action of wrapping a value that otherwise would have been allocated on the stack in an object that is allocated on the heap.
+Unboxing is the opposite action - taking a value that can be allocated on the stack out of an object that is allocated on the heap.
+The performance implications are the overhead of creating and collecting of a heap object that could have been otherwise handled by handling a stack frame.
+
+[Chat GPT comments]
+Your answer is clear and mostly accurate. Here are some areas to strengthen it:
+
+- **When they occur:** Clarify that boxing occurs when a value type is converted to an object or any interface it implements (e.g., `object obj = 5;` or passing an `int` to a method expecting `object`). Unboxing is the reverse and requires an explicit cast.
+- **Type safety:** Mention that unboxing can throw an `InvalidCastException` if the types do not match exactly (e.g., trying to unbox a boxed `int` as a `long`).
+- **Real-world scenarios:** Boxing often happens implicitly with collections (e.g., `ArrayList` before generics), LINQ operations, and method calls with `object` parameters. Modern code using generics reduces boxing overhead.
+- **Performance impact:** Your mention of heap allocation and GC overhead is correct, but also note that boxing involves copying the value into the heap object, and unboxing copies it back—both are CPU-intensive operations in tight loops.
+
+**Improved phrasing:**
+> Boxing converts a value type to an object, allocating it on the heap and copying the value. Unboxing extracts the value, requiring an explicit cast and throwing an exception if types do not match. The main costs are heap allocation, garbage collection, and the copy operations themselves—significant in performance-critical code.
+
 #### Key Concepts & Interview Issues from Discussion
 - Objects are allocated in generations: Gen 0 (new), Gen 1 (survived one collection), Gen 2 (long-lived/large objects).
 - Most objects die young; Gen 0 is collected most frequently and quickly.
