@@ -177,3 +177,17 @@ A: Inheritance in C# is implemented using a vTable (virtual method table) which 
 - Method hiding occurs when a derived class implements a signature that already exists in the base class, but does not want the base class behavior and does not want the base class method to be accessible through polymorphism.
 - To hide a method, the derived class uses the `new` keyword on the method signature.
 - This breaks the polymorphic chain for that method; calls through a base class reference will use the base version, while calls through a derived class reference will use the hidden version.
+
+**Q: What is the difference between value types and primitive types in C#?**
+
+A: In C#, **primitive types** are a subset of **value types**. 
+
+**Value Types** include:
+- **Primitive types:** `byte`, `sbyte`, `short`, `ushort`, `int`, `uint`, `long`, `ulong`, `float`, `double`, `decimal`, `bool`, `char`
+- **Structs:** User-defined value types created with the `struct` keyword
+- **Enums:** Enumeration types
+- **Nullable types:** `T?` (e.g., `int?`, `bool?`)
+
+**Primitive types** are built-in value types provided by the language and CLR. They are the fundamental building blocks for other types and have direct language support for literals and operators. They directly map to CLR types (e.g., `int` = `System.Int32`) and are optimized by the runtime.
+
+**Key relationship:** All primitive types are value types, but not all value types are primitive types (e.g., custom structs are value types but not primitive types).
