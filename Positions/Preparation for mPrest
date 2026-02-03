@@ -69,50 +69,39 @@
 ### 2. Operations to Know
 - How to insert, delete, search, and traverse each structure.
 - Time and space complexity for each operation (Big O notation).
-- When to use each structure (trade-offs).
-
-### 3. Implementation Details
-- How to implement a linked list, stack, or queue from scratch.
-- How to traverse trees (in-order, pre-order, post-order, level-order).
-- How to represent graphs (adjacency list vs. matrix).
-
-### 4. Common Interview Problems
 - Reverse a linked list.
+**Crucial .NET internals:**
+When you use methods like `List<T>.Contains()` or `List<T>.IndexOf()`, the equality comparison is performed by `EqualityComparer<T>.Default`. This comparer automatically checks if your type `T` implements `IEquatable<T>`. If so, it uses your `Equals(T other)` method for comparisons. If not, it falls back to using `object.Equals()`. This means that implementing `IEquatable<T>` directly affects how these collection methods determine equality, and is the recommended way to provide custom equality logic for your types in .NET collections.
 - Detect a cycle in a linked list or graph.
 - Find the kth largest/smallest element.
-- Implement a queue using two stacks.
-- Use a hash table to count occurrences or find duplicates.
 
 ### 5. Advanced Topics (for senior/real-time roles)
-- Thread-safe collections (ConcurrentQueue, locks).
-- Custom data structures for performance (ring buffer, trie).
-- Memory usage and cache efficiency.
 
+**Prime numbers in GetHashCode:**
+When implementing `GetHashCode()`, it's best practice to combine multiple fields using prime numbers (e.g., multiply by 31 or 397) to reduce hash collisions and distribute hash codes more evenly. For example:
+```csharp
+public override int GetHashCode()
+{
+	unchecked
+	{
+		int hash = 17;
+		hash = hash * 31 + field1.GetHashCode();
+		hash = hash * 31 + field2.GetHashCode();
+		// ...
+		return hash;
+	}
+}
+```
+Or use `HashCode.Combine()` in .NET Core and later for simplicity and reliability.
 ### 6. Practical Tips
 - Be able to explain your choice of data structure for a given problem.
 - Know how to optimize for time vs. space.
-- Practice coding basic structures without using built-in libraries.
-
----
-
-## Questions and Answers
-
-**Q: What is the difference between value types and reference types in C#? Give examples of each.**
 
 A: Value types are types that are created directly on the stack when declared in the code. When they are passed to a method they are passed by value—meaning a copy of them is passed. Examples include integers and structs.
 
-Reference types are types that are created on the stack when declared in the code (the compiler is enforcing their creation through constructors (new keyword)). When they are passed into functions they are passed by reference (pointer to the actual object on the stack), which means that changes that are applied to the object inside the function are effective outside of it as well. Examples include strings or arrays.
-
-[Chat answer]
 **Value types** (e.g., `int`, `double`, `struct`) store their data directly, and assignment or parameter passing **copies the value**. They are **usually stored on the stack, but can also be on the heap** (for example, as part of a class or array).
 
-**Reference types** (e.g., `class`, `string`, `array`) store a **reference to the actual data, which is always on the heap**. Assignment or parameter passing **copies the reference (not the object itself)**, so multiple variables can refer to the same object. **Modifying the object through one reference is visible to all references.**
-
-**Key differences:**
-- **Value types: assignment and parameter passing copies the value.**
-- **Reference types: assignment and parameter passing copies the reference, not the object.**
 - **Reference type objects are always on the heap; value types can be on the stack or heap.**
-
 **Q: What is the difference between passing a reference type to a method normally, and passing it with the `ref` keyword? What does `ref` mean for reference types?**
 
 A: Passing a reference type to a method normally allows the method to modify the object's data, and those changes are visible outside the method. However, if the method assigns a new object to the parameter, this change is local to the method—the original reference outside the method remains unchanged.
@@ -209,3 +198,21 @@ Your answer is excellent and demonstrates a solid understanding of the distincti
 - **Performance:** `Equals()` is a virtual method call, while `==` is typically faster (but can be overloaded, so this isn't always true). For performance-critical code, `==` is usually preferred.
 - **Best practice:** Override both `==` and `Equals()` consistently if implementing a custom type; they should produce the same results. Also override `GetHashCode()` when overriding `Equals()` to maintain consistency with hash-based collections.
 - **IEquatable<T>:** For value types and when performance matters, implementing `IEquatable<T>` and overriding `Equals()` avoids boxing and is more efficient than relying on the default implementation.
+
+**Q: How do you override `GetHashCode()` and `Equals()` in C#? Why is it important to override both together?**
+
+A: **Overriding `GetHashCode()`:** Should try to distribute the values it returns equally to create effective bucketing of instances. The key rule is that if two different instances are equal according to `Equals()`, they **must** have the same hash code. This ensures that if two instances have different hash codes, they are certainly not equal.
+
+**Overriding `Equals()`:** Should ensure that if two instances have exactly the same data (recursively), they must be considered equal by this method. This also ensures that an instance compared to itself always returns true.
+
+**Why override both together:** These two methods are intrinsically linked. If you override `Equals()` to define a new equality contract, you must override `GetHashCode()` accordingly to maintain the contract that equal objects have equal hash codes. Failing to do so breaks hash-based collections like `Dictionary`, `HashSet`, and `Hashtable`, where objects are located by hash code first and then compared with `Equals()`. This contract violation can lead to objects being "lost" or incorrectly retrieved from these collections.
+
+[Chat GPT comments]
+Your answer is excellent and demonstrates a strong understanding of the intrinsic relationship between these two methods. Here are some areas to expand for a more comprehensive answer:
+
+- **Hash code contract clarity:** Emphasize the asymmetry: equal objects MUST have equal hash codes, but different objects CAN have the same hash code (hash collision). This is why hash code alone is insufficient for equality.
+- **`GetHashCode()` implementation tips:** Mention that a good hash code combines multiple fields using prime numbers or `HashCode.Combine()` (in .NET Core), and should ideally use immutable data. Also note that `GetHashCode()` should not throw exceptions and should be consistent (same object should always return same hash code).
+- **`Equals()` implementation tips:** Should compare all relevant fields, handle null references gracefully, check type compatibility first (is the other object the same type?), and delegate to `Equals()` on member objects recursively.
+- **Practical warning:** Violating the hash code contract is a subtle bug because it often works initially but breaks intermittently when hash tables grow or rehash internally, making it hard to debug.
+- **Example scenarios:** Hash collision handling (multiple objects with same hash code but different equality), what happens when you add an object to a `Dictionary` with one hash code, then change its internal data and try to retrieve it.
+- **IEquatable<T> integration:** When implementing `Equals()`, also implement `IEquatable<T>` for better performance, and override the `==` and `!=` operators to remain consistent.
