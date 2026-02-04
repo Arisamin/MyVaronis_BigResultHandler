@@ -2,6 +2,7 @@
 
 ## Structure
 
+- `NEXT_WORK_ITEMS.md`: List of upcoming tasks, TODOs, and work items for the project
 - `CV/` — All CV-related files, including:
   - `ArielCV.md`: Main CV in markdown format
   - `Ariel_CV_Original.pdf`: Original CV in PDF format
@@ -20,10 +21,19 @@
   - `Varonis projects`: List and summary of Varonis project modules and features
   - `INTERVIEW_QUESTIONS.md`/`.txt`: Interview prep and Q&A for system design
   - `TPLvsRX/`: Comparison and code samples for Rx Subject vs TPL Dataflow in message handling
+- `Playground/` — Experimental code and demos:
+  - `Playground.csproj`: Project file
+  - `Program.cs`: Main playground program
+  - `DictionaryCollisionDemo.cs`: Demo code for dictionary collision handling
+- `Positions/` — Preparation files for interviews:
+  - `Preparation For Semperis.md`
+  - `Preparation for mPrest`
 - `git-push.bat`: Helper script for git operations
+- `Workspace_Document_Map.md`: Index of all workspace documents
 
 ## Document Summaries & Motivation
 
+- **NEXT_WORK_ITEMS.md**: Tracks upcoming tasks, TODOs, and planned work for the project. Update regularly to keep the team aligned.
 - **ArielCV.md**: Your current, ATS-optimized CV, maintained in markdown for easy editing and versioning.
 - **Ariel_CV_Original.pdf**: The original CV for reference and backup.
 - **CV guidelines by Claude.txt**: Modern CV writing best practices and structure, used to guide the rewrite of `ArielCV.md`.

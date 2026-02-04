@@ -17,6 +17,7 @@ This file lists all documents and major files in the workspace, organized by fol
 - HR_Questions.md
 - Logic_Programming_Interview_Questions.md
 
+ **NEXT_WORK_ITEMS.md**: Tracks upcoming tasks, TODOs, and planned work for the project. Update regularly to keep the team aligned.
 
 ## docs
 - architecture-diagram.html
@@ -35,9 +36,11 @@ This file lists all documents and major files in the workspace, organized by fol
 - STATE_MACHINE_LLD.md
 - TPLvsRX/
 - Varonis projects
+- CSharp_Basics.md (recently added)
 
 ## Positions
 - Preparation For Semperis.md (recently added)
+- Preparation for mPrest (recently added)
 
 ### docs/TPLvsRX
 - Reactive vs TPL handling in RabbitMQ messages.md

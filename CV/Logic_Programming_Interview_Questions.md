@@ -260,7 +260,25 @@ This document collects classic interview questions that test logical thinking an
 ### 13. Rotate an array by k steps
 **Time:** O(n) &nbsp;&nbsp; **Space:** O(1) (in-place), O(n) (extra array)
 
-// (Add your implementation here)
+        static object[] Rotate(object[] a, int s)
+        {
+            for(int i=1 ; i<=s ; i++)
+                a = RotateOnce(a);
+            
+            return a;
+        }
+
+        static object[] RotateOnce(object[] a)
+        {
+            object spare = a[a.Length-1];
+            
+            for(int i=a.Length-1 ; i>0 ; i--)
+                a[i] = a[i-1];
+
+            a[0] = spare;
+            
+            return a;
+        }
 
 ---
 
@@ -319,9 +337,3 @@ This document collects classic interview questions that test logical thinking an
             
             return null;
         }
-
-13. Implement a function to rotate an array by k steps.
-
-14. Implement a function to remove duplicates from a sorted array.
-
-15. Implement a function to find the longest substring without repeating characters.

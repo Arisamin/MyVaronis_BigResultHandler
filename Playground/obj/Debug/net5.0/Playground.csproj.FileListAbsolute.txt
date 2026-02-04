@@ -1,0 +1,16 @@
+C:\MyData\Git\MyVaronis-BigResultHandler\Playground\bin\Debug\net5.0\Playground.exe
+C:\MyData\Git\MyVaronis-BigResultHandler\Playground\bin\Debug\net5.0\Playground.deps.json
+C:\MyData\Git\MyVaronis-BigResultHandler\Playground\bin\Debug\net5.0\Playground.runtimeconfig.json
+C:\MyData\Git\MyVaronis-BigResultHandler\Playground\bin\Debug\net5.0\Playground.runtimeconfig.dev.json
+C:\MyData\Git\MyVaronis-BigResultHandler\Playground\bin\Debug\net5.0\Playground.dll
+C:\MyData\Git\MyVaronis-BigResultHandler\Playground\bin\Debug\net5.0\ref\Playground.dll
+C:\MyData\Git\MyVaronis-BigResultHandler\Playground\bin\Debug\net5.0\Playground.pdb
+C:\MyData\Git\MyVaronis-BigResultHandler\Playground\obj\Debug\net5.0\Playground.csproj.AssemblyReference.cache
+C:\MyData\Git\MyVaronis-BigResultHandler\Playground\obj\Debug\net5.0\Playground.GeneratedMSBuildEditorConfig.editorconfig
+C:\MyData\Git\MyVaronis-BigResultHandler\Playground\obj\Debug\net5.0\Playground.AssemblyInfoInputs.cache
+C:\MyData\Git\MyVaronis-BigResultHandler\Playground\obj\Debug\net5.0\Playground.AssemblyInfo.cs
+C:\MyData\Git\MyVaronis-BigResultHandler\Playground\obj\Debug\net5.0\Playground.csproj.CoreCompileInputs.cache
+C:\MyData\Git\MyVaronis-BigResultHandler\Playground\obj\Debug\net5.0\Playground.dll
+C:\MyData\Git\MyVaronis-BigResultHandler\Playground\obj\Debug\net5.0\ref\Playground.dll
+C:\MyData\Git\MyVaronis-BigResultHandler\Playground\obj\Debug\net5.0\Playground.pdb
+C:\MyData\Git\MyVaronis-BigResultHandler\Playground\obj\Debug\net5.0\Playground.genruntimeconfig.cache

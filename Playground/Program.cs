@@ -9,11 +9,14 @@ namespace Playground
     {
         static void Main(string[] args)
         {
-            RunRotateArray();
+            //RunRotateArray();
             //LowestCommonAncestorCase();
             //CheckBInaryTreeBalance();
             //Fib(5);
             //RunFlattenList();
+
+            // Demonstrate Dictionary collision handling
+            DictionaryCollisionDemo.Run();
         }
 
         static void RunRotateArray()
@@ -30,7 +33,8 @@ namespace Playground
             PrintArray(rotatedArr);
         }
 
-        static object[] Rotate(object[] a, int s)
+        // Complexity: O(n*k), Space: O(1)
+        static object[] Rotate1(object[] a, int s)
         {
             for(int i=1 ; i<=s ; i++)
                 a = RotateOnce(a);
@@ -46,6 +50,61 @@ namespace Playground
                 a[i] = a[i-1];
 
             a[0] = spare;
+            
+            return a;
+        }
+
+        // Complexity: O(n), Space: O(1)
+        static object[] Rotate(object[] a, int k)
+        {
+            int even = a.Length / k;
+            int  remainder = a.Length % k;
+
+            a = SwapRanges(a, even, k);
+            
+            if(remainder > 0)
+            {
+                object[] prefix = new object[k];
+                
+                for(int i=0 ; i<k ; i++)
+                    prefix[i] = a[i];
+                    
+                prefix = Rotate(prefix, k-remainder);
+                
+                for(int i=0 ; i<k ; i++)
+                    a[i] = prefix[i];
+                    
+                a = SwapRanges(a, k-remainder, a.Length - remainder, remainder);
+            }
+
+            return a;
+        }
+
+        static object[] SwapRanges(object[] a, int rangesCount, int length)
+        {
+            for(int i=1 ; i<=rangesCount-1 ; i++)
+            {
+                a = SwapRanges(a, 0, i*length, length);
+            }
+            
+            return a;
+        }
+
+        static object[] SwapRanges(object[] a, int r1, int r2, int length)
+        {
+            for(int i=0 ; i<length ; i++)
+            {
+                a = ReplaceCells(a, r1+i, r2+i);
+            }
+            
+            return a;
+        }
+
+        static object[] ReplaceCells(object[] a, int c1, int c2)
+        {
+            object x = a[c1];
+            a[c1] = a[c2];
+            a[c2] = x;
             
             return a;
         }

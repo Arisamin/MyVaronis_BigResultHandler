@@ -1,22 +1,23 @@
-1) BAR\GAG\DTE
+1) BAR\GAG\DTE (Turbo\Ninja)
     - StateMachine
     - DB
     - Dispatcher
     - UI
-2) Commit ActionService
+2) Commit ActionService (Ninja)
     - OngoingOperation
-3) Insight Engine and Runner
+3) Insight Engine and Runner (IE)
     - Hot Subject (RX) for Agent procees logs
     - Pre\Post processing stroed procedures
     - Async
-4) Policies Framework - ExecutionManager
+4) Policies Framework - ExecutionManager (Lions)
     - ActionBlock
     - Autofac and graceful shutdown
     - Automation
-5) GAG SAAS
+    - Lab Toolbox
+5) GAG SAAS (Lions)
     - Autofac modules
     - Type conversion
     - Automation
-6) Commit ResultHandler
+6) Commit ResultHandler (Lions)
     - Azure Storage and streaming
     - Handling RabbitMQ messages into KV Store (Azure Table) through ActionBlock

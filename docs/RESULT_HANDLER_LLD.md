@@ -398,6 +398,48 @@ class PayloadMessage {
 
 ### Goals
 - **Release the consumer thread as soon as possible:** Prevent blocking RabbitMQ consumer threads to maximize throughput and avoid backpressure.
+
+### Scale & Memory Notes (reference)
+
+This section collects practical math, observations and recommended mitigations for large transactions and memory safety. Keep this as a reference when tuning prefetch, parallelism and upload behavior.
+
+- Basic assumptions used for sizing examples in this document:
+  - Result payload per file (text): ~1,000 characters; UTF-8 ≈ 4 bytes/char → ~4,000 bytes (~4 KB) per file result
+  - Average file size (example): 10 MB
+
+- Example A — 100 GB root
+  - Files = 100 GB / 10 MB ≈ 10,000 files
+  - Results total ≈ 10,000 × 4 KB = ~40,000,000 B ≈ 40 MB
+  - Protobuf overhead per result is small (field tag + varint length), so serialized transaction is still ≈ ~40 MB
+  - RabbitMQ message limit (250 MB) → whole transaction fits comfortably in a single 250 MB message (or split into a few messages intentionally)
+
+- Example B — 100 TB root (scale-up)
+  - Files = 100 TB / 10 MB ≈ 10,000,000 files
+  - Results total ≈ 10,000,000 × 4 KB = ~40,000,000,000 B ≈ 40 GB per transaction
+  - With 250 MB RabbitMQ max message size, the transaction would be split into ~40 GB / 250 MB ≈ 160 messages
+
+- Key takeaway about in-process memory:
+  - RabbitMQ .NET client delivers message bodies to consumers and those bodies are resident in memory while delivered. In-process queues (Subject, ActionBlock, Channel) only hold references to messages already loaded into memory by the client.
+  - Therefore true memory control requires limiting how many messages the broker will deliver concurrently (RabbitMQ QoS/prefetch) or changing the delivery shape (small messages or external offload).
+
+- ActionBlock defaults and tuning:
+  - `ExecutionDataflowBlockOptions.MaxDegreeOfParallelism` default = 1 (single-threaded). You must explicitly set it to allow concurrent uploads.
+  - Use `BoundedCapacity` to limit in-process queueing; pair `BoundedCapacity` with RabbitMQ `prefetch` for predictable memory bounds.
+
+- Practical mitigations (recommended order):
+  1. Set RabbitMQ consumer `prefetch` to the desired number of in-flight messages per consumer (P). Configure ActionBlock with `MaxDegreeOfParallelism = P` and `BoundedCapacity = P` (or slightly larger). This bounds message bodies in memory to ≈ P per consumer.
+  2. If feasible, change producer behavior: upload large binary payloads to object storage and send small metadata messages (URIs) via RabbitMQ. Consumers stream directly from storage.
+  3. If producer changes are impossible, use consumer-side temporary staging: immediately write incoming message body to disk (file-backed stream) and release the in-memory buffer, then process from disk.
+  4. Use chunking of payloads (smaller message sizes) so that reasonable prefetch counts remain safe.
+
+- Example capacity planning rule of thumb:
+  - If each message can be up to 250 MB and you want to cap memory per consumer at ~2 GB, then set `prefetch = floor(2 GB / 250 MB) = 8`.
+  - Scale overall throughput by running multiple consumer instances with the same per-consumer bounds.
+
+- Notes on streaming uploads
+  - Streaming upload implementations (read from incoming stream → write to blob stream in fixed-size buffers) keep memory usage per upload small (e.g., 4–8 MB buffers), but do not change the fact that the broker may have delivered N message bodies into memory unless `prefetch` is controlled.
+
+Keep these notes with the ResultHandler LLD as a practical reference when tuning production deployments.
 - **Efficient memory usage:** Avoid loading entire (potentially large) messages into memory; process data in a streaming fashion.
 - **Crash and recovery safety:** Ensure that message processing is idempotent and can safely resume after a crash, with no data loss or duplication.
 

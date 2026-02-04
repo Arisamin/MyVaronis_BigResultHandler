@@ -19,16 +19,16 @@ This document tracks feedback, concerns, and questions to address iteratively as
 - Modern skills section is well-organized and scannable
 
 **Red Flags:**
-- Still generic Varonis responsibilities - "worked on various services" is vague
-  - **Conclusion:** Partially resolved; CV now includes BigResultHandler as a specific achievement, but still has generic "worked on various services" bullet.
-- Technologies line under Varonis contradicts skills section (lists Azure Service Bus in tech line, but skills show ADX/Kusto/Table/Blob)
-  - **Conclusion:** Resolved; the CV now lists technologies consistently and does not mention Azure Service Bus.
-- NICE sections feel copy-pasted from job descriptions ("My group develops...", "My group developed...")
-  - **Conclusion:** Not resolved; NICE sections still use "My group" narrative style.
-- "Technical lead" title at NICE 2016-2017 but "Senior Developer" everywhere else - career regression?
-  - **Conclusion:** Still exists; CV shows "Technical lead" at NICE 2016-2017 but "Senior Developer" at Varonis and other NICE roles.
-- Lots of buzzwords added (event-driven, stateful processing, crash recovery) but no concrete examples or achievements
-  - **Conclusion:** Partially resolved; CV now includes BigResultHandler with specific details about event-driven architecture, state machine, and 3-layer crash recovery.
+- Still generic Varonis responsibilities - "worked on various services" is vague <!-- Resolved -->
+   - **Conclusion:** Partially resolved; CV now includes BigResultHandler as a specific achievement, but still has generic "worked on various services" bullet. <!-- Resolved -->
+- Technologies line under Varonis contradicts skills section (lists Azure Service Bus in tech line, but skills show ADX/Kusto/Table/Blob) <!-- Resolved -->
+   - **Conclusion:** Resolved; the CV now lists technologies consistently and does not mention Azure Service Bus. <!-- Resolved -->
+- NICE sections feel copy-pasted from job descriptions ("My group develops...", "My group developed...") <!-- Not Resolved -->
+   - **Conclusion:** Not resolved; NICE sections still use "My group" narrative style. <!-- Not Resolved -->
+- "Technical lead" title at NICE 2016-2017 but "Senior Developer" everywhere else - career regression? <!-- Not Resolved -->
+   - **Conclusion:** Still exists; CV shows "Technical lead" at NICE 2016-2017 but "Senior Developer" at Varonis and other NICE roles. <!-- Not Resolved -->
+- Lots of buzzwords added (event-driven, stateful processing, crash recovery) but no concrete examples or achievements <!-- Resolved -->
+   - **Conclusion:** Partially resolved; CV now includes BigResultHandler with specific details about event-driven architecture, state machine, and 3-layer crash recovery. <!-- Resolved -->
 
 **Interview Questions to Prepare For:**
 1. "What specific crash recovery mechanism did you implement?"
@@ -44,16 +44,16 @@ This document tracks feedback, concerns, and questions to address iteratively as
 - Azure cloud exposure
 
 **Concerns:**
-- **Buzzword inflation**: "event-driven, stateful processing, crash recovery" in one bullet point with zero context - screams keyword stuffing
-  - **Conclusion:** Partially resolved; CV now provides specific context for BigResultHandler (state machine pattern, 3-layer crash recovery, exactly-once semantics).
-- **No depth**: What KIND of stateful processing? What was the crash recovery strategy? Checkpointing? Event sourcing? Idempotency?
-  - **Conclusion:** Partially resolved; CV mentions state machine pattern, Database state persistence, message durability, KV Store deduplication, and idempotent message handling.
-- **Technology mismatch**: Varonis tech line says "Azure Service Bus" but skills section shows ADX/Kusto/Table/Blob - keep consistent
-  - **Conclusion:** Resolved; technologies are now consistent in the CV.
-- **Still no achievements**: What problem did these mechanisms solve? What was the scale?
-  - **Conclusion:** Still exists; CV does not provide scale metrics or specific problem solved.
-- **NICE sections unchanged**: Still reads like job posting text, not actual work
-  - **Conclusion:** Not resolved; NICE sections still use "My group" narrative style.
+- **Buzzword inflation**: "event-driven, stateful processing, crash recovery" in one bullet point with zero context - screams keyword stuffing <!-- Resolved -->
+   - **Conclusion:** Partially resolved; CV now provides specific context for BigResultHandler (state machine pattern, 3-layer crash recovery, exactly-once semantics). <!-- Resolved -->
+- **No depth**: What KIND of stateful processing? What was the crash recovery strategy? Checkpointing? Event sourcing? Idempotency? <!-- Resolved -->
+   - **Conclusion:** Partially resolved; CV mentions state machine pattern, Database state persistence, message durability, KV Store deduplication, and idempotent message handling. <!-- Resolved -->
+- **Technology mismatch**: Varonis tech line says "Azure Service Bus" but skills section shows ADX/Kusto/Table/Blob - keep consistent <!-- Resolved -->
+   - **Conclusion:** Resolved; technologies are now consistent in the CV. <!-- Resolved -->
+- **Still no achievements**: What problem did these mechanisms solve? What was the scale? <!-- Partially Resolved -->
+   - **Conclusion:** Still exists; CV does not provide scale metrics or specific problem solved. <!-- Partially Resolved -->
+- **NICE sections unchanged**: Still reads like job posting text, not actual work <!-- Not Resolved -->
+   - **Conclusion:** Not resolved; NICE sections still use "My group" narrative style. <!-- Not Resolved -->
 
 **Interview Questions to Prepare For:**
 1. "Walk me through a crash recovery scenario - how did your system handle it?"
@@ -69,23 +69,23 @@ This document tracks feedback, concerns, and questions to address iteratively as
 
 ### CRITICAL - Address Next:
 
-1. **Fix Varonis Technologies Line**
+1. **Fix Varonis Technologies Line** <!-- Resolved -->
    - Currently says: "Azure (Service Bus, Blob Storage)"
    - Should say: "Azure (ADX/Kusto, Table Storage, Blob Storage)" (or similar - match skills section)
    - Remove Azure Service Bus if not actually used
-   - **Conclusion:** Resolved; the CV now lists technologies consistently and does not mention Azure Service Bus.
+   - **Conclusion:** Resolved; the CV now lists technologies consistently and does not mention Azure Service Bus. <!-- Resolved -->
 
-2. **Add ONE Specific Achievement for Buzzwords**
+2. **Add ONE Specific Achievement for Buzzwords** <!-- Resolved -->
    - Pick one concrete example that demonstrates event-driven + stateful processing + crash recovery
    - This is where BigResultHandler project could shine
    - Format: "Designed and implemented [specific system] handling [scale/problem] using [pattern/technology]"
-   - **Conclusion:** Partially resolved; CV now includes BigResultHandler with specific technical details, but still lacks scale metrics (e.g., transaction volume, data size, performance improvements).
+   - **Conclusion:** Partially resolved; CV now includes BigResultHandler with specific technical details, but still lacks scale metrics (e.g., transaction volume, data size, performance improvements). <!-- Partially Resolved -->
 
-3. **Condense/Rewrite NICE Sections**
+3. **Condense/Rewrite NICE Sections** <!-- Not Resolved -->
    - Remove "My group develops..." narrative style
    - Make it about YOUR contributions, not team description
    - Keep it brief - older roles matter less
-   - **Conclusion:** Not resolved; NICE sections still use "My group" narrative style.
+   - **Conclusion:** Not resolved; NICE sections still use "My group" narrative style. <!-- Not Resolved -->
 
 ---
 
