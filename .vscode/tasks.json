@@ -1,0 +1,26 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "build and run Playground",
+			"type": "shell",
+			"command": "dotnet build Playground/Playground.csproj && dotnet run --project Playground/Playground.csproj",
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "build Playground",
+			"type": "shell",
+			"command": "dotnet build Playground/Playground.csproj",
+			"isBackground": false,
+			"group": "build"
+		},
+		{
+			"label": "run Playground",
+			"type": "shell",
+			"command": "dotnet run --project Playground/Playground.csproj",
+			"isBackground": false,
+			"group": "build"
+		}
+	]
+}

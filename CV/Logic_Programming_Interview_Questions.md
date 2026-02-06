@@ -280,6 +280,37 @@ This document collects classic interview questions that test logical thinking an
             return a;
         }
 
+solution 2: reversing
+
+object[] Rotate(object[] a, int k)
+{
+	// reverse everything
+	// reverse first k
+	// reverse last n-k
+	
+	int n = a.Length;
+	
+	a = Reverse(a, 0, n-1);
+	a = Reverse(a, 0, k-1);
+	a = Reverse(a, k, n-1);
+	
+	return a;
+}
+
+
+object[] Reverse(object[] a, int start, int end)
+{
+	int t;
+	
+	for(int i=0 ; start+i <= end-i ; i++)
+	{
+		t = a[start+i];
+		a[start+i] = a[end-i];
+		a[end-i] = t;
+	}
+	
+	return a;
+}
 ---
 
 ### 14. Remove duplicates from a sorted array

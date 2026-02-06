@@ -9,14 +9,14 @@ namespace Playground
     {
         static void Main(string[] args)
         {
-            //RunRotateArray();
+            RunRotateArray();
             //LowestCommonAncestorCase();
             //CheckBInaryTreeBalance();
             //Fib(5);
             //RunFlattenList();
 
             // Demonstrate Dictionary collision handling
-            DictionaryCollisionDemo.Run();
+            // DictionaryCollisionDemo.Run();
         }
 
         static void RunRotateArray()
@@ -55,28 +55,58 @@ namespace Playground
         }
 
         // Complexity: O(n), Space: O(1)
+        // static object[] Rotate(object[] a, int k)
+        // {
+        //     int even = a.Length / k;
+        //     int  remainder = a.Length % k;
+
+        //     a = SwapRanges(a, even, k);
+            
+        //     if(remainder > 0)
+        //     {
+        //         object[] prefix = new object[k];
+                
+        //         for(int i=0 ; i<k ; i++)
+        //             prefix[i] = a[i];
+                    
+        //         prefix = Rotate(prefix, k-remainder);
+                
+        //         for(int i=0 ; i<k ; i++)
+        //             a[i] = prefix[i];
+                    
+        //         a = SwapRanges(a, k-remainder, a.Length - remainder, remainder);
+        //     }
+
+        //     return a;
+        // }
+
         static object[] Rotate(object[] a, int k)
         {
-            int even = a.Length / k;
-            int  remainder = a.Length % k;
-
-            a = SwapRanges(a, even, k);
+            // reverse everything
+            // reverse first k
+            // reverse last n-k
             
-            if(remainder > 0)
-            {
-                object[] prefix = new object[k];
-                
-                for(int i=0 ; i<k ; i++)
-                    prefix[i] = a[i];
-                    
-                prefix = Rotate(prefix, k-remainder);
-                
-                for(int i=0 ; i<k ; i++)
-                    a[i] = prefix[i];
-                    
-                a = SwapRanges(a, k-remainder, a.Length - remainder, remainder);
-            }
+            int n = a.Length;
+            
+            a = Reverse(a, 0, n-1);
+            a = Reverse(a, 0, k-1);
+            a = Reverse(a, k, n-1);
+            
+            return a;
+        }
 
+
+        static object[] Reverse(object[] a, int start, int end)
+        {
+            object t;
+            
+            for(int i=0 ; start+i <= end-i ; i++)
+            {
+                t = a[start+i];
+                a[start+i] = a[end-i];
+                a[end-i] = t;
+            }
+            
             return a;
         }
 
