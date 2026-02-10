@@ -215,3 +215,39 @@ The state machine design enables:
 - Payload chunking at 250MB allows handling unlimited result sizes
 - Component can handle multiple concurrent transactions
 - Storage must support concurrent access by Transaction ID
+
+## Why Two Queues: Header and Payload?
+
+The system uses two separate RabbitMQ queues—one for headers and one for payloads—instead of a single queue for all messages. This design choice is motivated by several key factors:
+
+1. **Separation of Concerns**: Headers (metadata, control info) and payloads (large result data or chunk references) have different lifecycles, sizes, and processing needs. Splitting them allows each to be handled optimally.
+2. **Performance and Throughput**: Payload messages are often much larger and slower to process. By separating them, header processing (which may be lightweight and latency-sensitive) is not blocked by large payloads.
+3. **Scalability**: You can scale consumers for headers and payloads independently, allocating more resources to whichever is the bottleneck.
+4. **Reliability and Recovery**: If a payload message fails or is delayed, it doesn’t block header processing or vice versa. This improves fault isolation and recovery.
+5. **Ordering and Idempotency**: Headers may need strict ordering or deduplication, while payloads may not. Separate queues make it easier to enforce the right semantics for each.
+
+This separation enables the system to efficiently process high-throughput, large-scale results with minimal coupling between control flow and data transfer.
+
+### Pushbacks and Challenges: Two-Queue Design
+
+Below are common challenges or pushbacks to the two-queue (header/payload) design, along with responses:
+
+**1. Both message types can be handled in one queue by examining a type header—this isn’t much overhead.**
+- True, a single queue can work by inspecting a type field and routing to the correct handler. The overhead is minimal. The main advantage of two queues is independent scaling and prioritization: header processing (often latency-sensitive) won’t be delayed by large payloads. For simple flows or low throughput, a single queue is valid.
+
+**2. A transaction is comprised of both header and payloads—there’s no meaning in handling new headers while their corresponding payloads are blocked or delayed.**
+- Correct, if payloads are delayed, processing new headers may not help. Separate queues are most beneficial when header and payload arrival rates differ, or when you want to avoid large payloads blocking lightweight header processing. If both are tightly coupled, a single queue can be simpler.
+
+**3. How do separate queues make it easier to enforce ordering or deduplication?**
+- Separate queues don’t inherently enforce ordering or deduplication. They make it easier only if you want different policies for headers vs. payloads (e.g., strict ordering for headers, relaxed for payloads). If you need global ordering or deduplication, you must implement it at the consumer or application level, regardless of queue separation.
+
+---
+
+**Practical/Historical Reason in Result Handler:**
+
+In the actual Result Handler implementation, the two-queue design is rooted in system evolution:
+- The header queue existed before the addition of big message functionality and still serves other flows where only header messages are passed for transactions.
+- The big payload queue was introduced to support new functionality for handling large disk spaces, broken down into many big payload messages.
+- For legacy transactions, every transaction expects only one header message—there is no series of messages.
+
+This separation allows legacy flows to continue using the header queue, while the payload queue enables scalable processing of large results.
