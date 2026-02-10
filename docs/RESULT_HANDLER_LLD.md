@@ -418,6 +418,12 @@ This section collects practical math, observations and recommended mitigations f
   - Results total ≈ 10,000,000 × 4 KB = ~40,000,000,000 B ≈ 40 GB per transaction
   - With 250 MB RabbitMQ max message size, the transaction would be split into ~40 GB / 250 MB ≈ 160 messages
 
+- **Legacy System (100 MB max message size, single message per transaction):**
+  - Max message size: 100 MB
+  - Maximum results per transaction: 100 MB / 4 KB ≈ 25,000 results
+  - **Maximum supported disk space: 25,000 files × 10 MB/file ≈ 250 GB per transaction**
+  - This was the hard limit before the introduction of the big payload queue and multi-message transactions
+
 - Key takeaway about in-process memory:
   - RabbitMQ .NET client delivers message bodies to consumers and those bodies are resident in memory while delivered. In-process queues (Subject, ActionBlock, Channel) only hold references to messages already loaded into memory by the client.
   - Therefore true memory control requires limiting how many messages the broker will deliver concurrently (RabbitMQ QoS/prefetch) or changing the delivery shape (small messages or external offload).
