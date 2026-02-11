@@ -307,6 +307,34 @@ class PayloadMessage {
 - KV Store uses TransactionId as PartitionKey for isolation
 - Azure Storage uses TransactionId in blob path for isolation
 
+### Scale-Out Strategy (ResultHandler)
+- **Run multiple ResultHandler instances**: RabbitMQ distributes messages across consumers for horizontal scale.
+- **Bound in-memory message bodies**: Set RabbitMQ `prefetch` (QoS) to cap in-flight messages per consumer.
+- **Match concurrency to prefetch**: Configure ActionBlock `MaxDegreeOfParallelism = P` and `BoundedCapacity = P` to align with prefetch and keep memory bounded.
+- **Stream uploads**: Keep payload handling memory-light by streaming to Azure Blob Storage with fixed-size buffers.
+- **Scale header/payload consumers independently** (if required): Allocate resources based on queue-specific bottlenecks.
+
+### Transaction Affinity (Header + Payload on Same Instance)
+Because a transaction consists of one header message and multiple payload messages, there are two supported approaches to ensure correct coordination:
+
+1. **No hard affinity required (shared state in KV Store)**
+  - Any ResultHandler instance can process any header or payload message.
+  - State and deduplication are persisted in KV Store keyed by `TransactionId`.
+  - This allows header and payload messages to land on different instances without losing correctness.
+
+
+2. **Optional affinity (when desired)**
+  - Use a routing strategy so messages with the same `TransactionId` go to the same consumer (e.g., consistent-hash exchange or a partitioning key).
+  - This reduces cross-instance coordination overhead but is not strictly required because state is centralized in KV Store.
+
+#### Stateless Message Handling
+Message handling in ResultHandler is designed to avoid reliance on in-memory data for transaction state. All essential transaction state (such as transaction progress, received payloads, and processing status) is persisted in the key-value store (e.g., Azure Table Storage). This ensures:
+- Any instance can process any message for a transaction.
+- The system is resilient to restarts or crashes.
+- Stateless scaling is possible.
+
+Temporary in-memory variables may be used within the scope of processing a single message, but no essential transaction state is kept only in memory between messages. All critical state is always persisted to the KV store before message handling completes.
+
 ### Thread Safety
 - Each StateMachine instance is single-threaded per transaction
 - Multiple StateMachine instances can process different transactions in parallel
