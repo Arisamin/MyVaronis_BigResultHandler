@@ -5,6 +5,7 @@ This file tracks upcoming tasks, features, and improvements for the BigResultHan
 ## Current Work Items
 
 1. [ ] Discuss ResultHandler scaling (rabbit load balancer? how to keep track of transactions)
+	- See architecture doc: Scalability Considerations for discussion of orchestrator-assigned instance IDs and limitations. Note: This area still has open issues regarding stable, sequential instance IDs in cloud environments.
 2. [ ] Challenge: How do we handle concurrent messages of the same transaction being processed by different ResultHandler instances? (Multithreaded work with KV store)
 3. [ ] Revisit what is the content that is passed in the payload messages - is it the result data or links to the result data, if so is the collector side uploading data to azure storage?
 4. [ ] What is the advantage of .Net Core over .Net Framework and why was it made

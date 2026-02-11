@@ -210,11 +210,36 @@ The state machine design enables:
 - Transaction ID is the key for coordinating and assembling results
 - Ensures correct matching of headers with their corresponding payloads
 
+
 ## Scalability Considerations
 
 - Payload chunking at 250MB allows handling unlimited result sizes
 - Component can handle multiple concurrent transactions
 - Storage must support concurrent access by Transaction ID
+
+### Service-Level Scaling and Queue Pair Isolation
+
+In this architecture, scaling is achieved by launching additional service instances. Each service instance manages its own set of state machines, KV store client, and RabbitMQ consumers. For each transaction, the remote service is provided with a unique header/payload queue pair, ensuring that only the owning service instance receives messages for the transactions it initiated.
+
+**Strengths:**
+- Service-level scaling allows horizontal expansion by spinning up more service instances.
+- Queue pair isolation ensures that messages for a transaction are routed only to the correct service instance.
+- KV store namespace isolation (by Transaction ID) prevents data collision between transactions.
+
+**Potential Holes / Considerations:**
+1. **Orphaned Transactions / Instance Failure**: If a service instance fails, its header/payload queues may become orphaned, and in-flight or future messages for those transactions may be lost or stuck.
+  - *Mitigation*: Implement queue monitoring and orphaned queue cleanup. Consider a mechanism for reassigning or draining orphaned queues if an instance dies unexpectedly.
+2. **Resource Utilization**: Creating a queue pair per transaction or per instance can lead to a large number of queues, which may be a management and resource challenge.
+  - *Mitigation*: Use shared queues with message affinity (partitioning by Transaction ID) if possible, or implement queue lifecycle management.
+3. **Remote Service Coupling**: The remote service must be correctly configured with the header/payload queue pair for each transaction. Misconfiguration or race conditions could result in misrouted messages.
+  - *Mitigation*: Ensure robust handshaking and validation when providing queue information to the remote service.
+4. **Scaling Granularity**: Scaling at the service instance level is coarse-grained. Uneven load distribution may occur if some instances handle more or larger transactions than others.
+  - *Mitigation*: Consider finer-grained scaling or dynamic transaction assignment if this becomes a bottleneck.
+5. **KV Store Consistency**: If multiple service instances ever need to access or update the same transaction’s state (e.g., for failover or recovery), the KV store must support strong consistency and optimistic concurrency.
+  - *Mitigation*: Use atomic operations and handle concurrency conflicts in the KV store.
+
+**Summary:**
+The architecture is robust if each transaction is strictly bound to a single service instance for its lifetime, and if queue and instance lifecycles are tightly managed. The main risks are around orphaned resources and ensuring that no messages are lost if an instance fails. If more dynamic scaling or failover is desired, additional mechanisms for transaction ownership reassignment and safe queue draining are required.
 
 ## Why Two Queues: Header and Payload?
 
