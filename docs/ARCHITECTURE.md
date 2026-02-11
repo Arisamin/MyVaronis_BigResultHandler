@@ -276,3 +276,55 @@ In the actual Result Handler implementation, the two-queue design is rooted in s
 - For legacy transactions, every transaction expects only one header message—there is no series of messages.
 
 This separation allows legacy flows to continue using the header queue, while the payload queue enables scalable processing of large results.
+
+**Obstacles to Cloud-Native Scale-Out**
+The following principles are fundamental to this design:
+
+Each service instance is assigned a unique, durable ID (e.g., "A", "B", "C") that persists across restarts or replacements.
+Each transaction is permanently bound to the instance ID that created it; only an instance with that specific ID can process or recover the transaction.
+The state machine and all related resources (KV store namespace, RMQ consumers) are strictly associated with the original instance ID.
+These principles create several obstacles to implementing a truly cloud-native scale-out:
+
+Cloud orchestrators do not guarantee stable instance IDs: Most orchestrators (Azure App Service, AKS, etc.) treat instances as stateless and interchangeable, assigning random or opaque IDs.
+No built-in support for strict transaction-to-instance affinity: Orchestrators do not natively enforce that only a replacement with the same ID can resume work for a given transaction.
+State recovery is not generic: Only the original instance (or its impersonator) can recover the state machine, so generic failover and load redistribution are not possible.
+Custom orchestration is required: You must implement your own logic to manage a pool of fixed instance IDs and ensure that all IDs in the range are always represented by running instances.
+Risk of lost transactions: If an instance cannot be replaced with the same ID, its transactions may be lost or stuck, as no other instance can take over.
+What You Need to Implement for This Model
+To uphold these principles and support this non-cloud-native, instance-bound scale-out, you must implement the following:
+
+Stable Instance ID Assignment: Ensure each service instance is assigned a unique, durable ID that persists across restarts and replacements, and that the orchestrator maintains a pool of IDs such that all IDs from 1 to n are always represented by running instances.
+Transaction-to-Instance Registry: Maintain a central registry (e.g., database table) mapping each transaction to its owning instance ID, along with all necessary metadata (state machine ID, KV namespace, RMQ consumer info) for recovery.
+Graceful Shutdown Protocol: On shutdown, persist all IDs and resource information used by the instance so that a replacement with the same ID can take over its transactions.
+Orchestrator Enforcement: Integrate with the orchestrator to guarantee that for every active transaction, a corresponding instance with the correct ID is always running, and that only one instance per ID is active at any time.
+Recovery and Monitoring: Implement monitoring to detect when an instance is down and trigger the orchestrator to launch a replacement with the same ID, ensuring no transactions are left orphaned.
+Security and Consistency: Enforce that only the correct instance ID can claim or resume its transactions, and that all state is fully persisted before ownership transfer.
+This approach prioritizes strict transaction-to-instance affinity and deterministic recovery over elasticity and cloud-native resilience. It is only recommended if your state machine and resource model require these guarantees and cannot be adapted to a more cloud-native pattern.
+
+Service-Level Scaling and Queue Pair Isolation
+In this architecture, scaling is achieved by launching additional service instances. Each service instance manages its own set of state machines, KV store client, and RabbitMQ consumers. For each transaction, the remote service is provided with a unique header/payload queue pair, ensuring that only the owning service instance receives messages for the transactions it initiated.
+
+Strengths:
+
+Service-level scaling allows horizontal expansion by spinning up more service instances.
+Queue pair isolation ensures that messages for a transaction are routed only to the correct service instance.
+KV store namespace isolation (by Transaction ID) prevents data collision between transactions.
+Potential Holes / Considerations:
+
+Orphaned Transactions / Instance Failure: If a service instance fails, its header/payload queues may become orphaned, and in-flight or future messages for those transactions may be lost or stuck.
+Mitigation: Implement queue monitoring and orphaned queue cleanup. Consider a mechanism for reassigning or draining orphaned queues if an instance dies unexpectedly.
+Resource Utilization: Creating a queue pair per transaction or per instance can lead to a large number of queues, which may be a management and resource challenge.
+Mitigation: Use shared queues with message affinity (partitioning by Transaction ID) if possible, or implement queue lifecycle management.
+Remote Service Coupling: The remote service must be correctly configured with the header/payload queue pair for each transaction. Misconfiguration or race conditions could result in misrouted messages.
+Mitigation: Ensure robust handshaking and validation when providing queue information to the remote service.
+Scaling Granularity: Scaling at the service instance level is coarse-grained. Uneven load distribution may occur if some instances handle more or larger transactions than others.
+Mitigation: Consider finer-grained scaling or dynamic transaction assignment if this becomes a bottleneck.
+KV Store Consistency: If multiple service instances ever need to access or update the same transaction's state (e.g., for failover or recovery), the KV store must support strong consistency and optimistic concurrency.
+Mitigation: Use atomic operations and handle concurrency conflicts in the KV store.
+Summary:
+The architecture is robust if each transaction is strictly bound to a single service instance for its lifetime, and if queue and instance lifecycles are tightly managed. The main risks are around orphaned resources and ensuring that no messages are lost if an instance fails. If more dynamic scaling or failover is desired, additional mechanisms for transaction ownership reassignment and safe queue draining are required.
+
+General Scalability Notes
+Payload chunking at 250MB allows handling unlimited result sizes
+Component can handle multiple concurrent transactions
+Storage must support concurrent access by Transaction ID
