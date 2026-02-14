@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Collections.Concurrent;
+using System.Threading.Tasks;
 
 namespace Playground
 {
@@ -9,7 +11,8 @@ namespace Playground
     {
         static void Main(string[] args)
         {
-            RunRotateArray();
+            DemoDictionaryVsConcurrentDictionary();
+            // RunRotateArray();
             //LowestCommonAncestorCase();
             //CheckBInaryTreeBalance();
             //Fib(5);
@@ -17,6 +20,80 @@ namespace Playground
 
             // Demonstrate Dictionary collision handling
             // DictionaryCollisionDemo.Run();
+
+            // Uncomment to run the concurrency demo:
+            //DemoDictionaryVsConcurrentDictionary();
+        }
+
+        /// <summary>
+        /// Demonstrates the difference between Dictionary and ConcurrentDictionary under concurrent writes.
+        /// </summary>
+        public static void DemoDictionaryVsConcurrentDictionary()
+        {
+            Console.WriteLine("\n--- Dictionary vs ConcurrentDictionary (Concurrent Writes) ---\n");
+
+            var dict = new Dictionary<int, int>();
+            var concurrentDict = new ConcurrentDictionary<int, int>();
+            int itemCount = 1000;
+            int errorCount = 0;
+
+            // Test Dictionary (expect failure)
+            try
+            {
+                Parallel.For(0, itemCount, i =>
+                {
+                    try
+                    {
+                        dict[i] = i;
+                        
+                        Console.WriteLine($"[Dictionary] Added {i} on thread {Task.CurrentId}");
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log the error
+                        Console.WriteLine($"[Dictionary] Exception at i={i}: {ex.GetType().Name} - {ex.Message}");
+                        errorCount++;
+                    }
+                });
+                Console.WriteLine($"[Dictionary] Finished. Count: {dict.Count}, Errors: {errorCount}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Dictionary] Outer Exception: {ex.GetType().Name} - {ex.Message}");
+            }
+
+            // Test ConcurrentDictionary (expect success)
+            errorCount = 0;
+            try
+            {
+                Parallel.For(0, itemCount, i =>
+                {
+                    try
+                    {
+                        concurrentDict[i] = i;
+                    }
+                    catch (Exception ex)
+                    {
+                        // Should not happen
+                        Console.WriteLine($"[ConcurrentDictionary] Exception at i={i}: {ex.GetType().Name} - {ex.Message}");
+                        errorCount++;
+                    }
+                });
+                Console.WriteLine($"[ConcurrentDictionary] Finished. Count: {concurrentDict.Count}, Errors: {errorCount}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ConcurrentDictionary] Outer Exception: {ex.GetType().Name} - {ex.Message}");
+            }
+
+            // Print the contents of the regular dictionary
+            Console.WriteLine("\n[Dictionary] Final contents:");
+            foreach (var kvp in dict)
+            {
+                Console.WriteLine($"Key: {kvp.Key}, Value: {kvp.Value}");
+            }
+
+            Console.WriteLine("\n--- End of Demo ---\n");
         }
 
         static void RunRotateArray()
