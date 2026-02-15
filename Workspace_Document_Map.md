@@ -37,6 +37,7 @@ This file lists all documents and major files in the workspace, organized by fol
 - TPLvsRX/
 - Varonis projects
 - CSharp_Basics.md (recently added)
+- concurrent data structures.md (recently added)
 
 ## Positions
 - Preparation For Semperis.md (recently added)

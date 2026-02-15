@@ -20,6 +20,7 @@
   - `STATE_MACHINE_LLD.md`: Low-level design for the StateMachine and transaction flow
   - `Varonis projects`: List and summary of Varonis project modules and features
   - `INTERVIEW_QUESTIONS.md`/`.txt`: Interview prep and Q&A for system design
+  - `concurrent data structures.md`: Comprehensive guide to ConcurrentDictionary and other concurrent data structures in C#
   - `TPLvsRX/`: Comparison and code samples for Rx Subject vs TPL Dataflow in message handling
 - `Playground/` — Experimental code and demos:
   - `Playground.csproj`: Project file
@@ -49,6 +50,7 @@
 - **STATE_MACHINE_LLD.md**: Technical design for the state machine that coordinates transaction processing and recovery.
 - **Varonis projects**: Summarizes the main modules and features developed for Varonis, useful for interviews and CV context.
 - **INTERVIEW_QUESTIONS.md** / **INTERVIEW_QUESTIONS.txt**: Prepares you for technical interviews by listing likely questions and detailed answers about the system.
+- **concurrent data structures.md**: Comprehensive guide to ConcurrentDictionary and other concurrent data structures in C#, including thread-safety patterns, common pitfalls, and usage guidelines.
 - **TPLvsRX/**: Contains markdown and code files comparing Rx Subject and TPL Dataflow approaches for message handling, with pros/cons and code samples.
 
 ## Motivation

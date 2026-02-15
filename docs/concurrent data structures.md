@@ -125,3 +125,107 @@ Think of it this way: Each method call is safe, but the time between method call
 ## Bottom Line
 
 ConcurrentDictionary won't crash when multiple threads use it, but it doesn't magically make your check-then-update patterns thread-safe. You must use its atomic methods to avoid race conditions.
+
+---
+
+# Other Concurrent Data Structures
+
+## 1. **ConcurrentQueue<T>**
+- **Thread-safe FIFO queue**
+- **Key methods:** `Enqueue(item)`, `TryDequeue(out item)`, `TryPeek(out item)`
+- **Use case:** Producer-consumer scenarios, task queues, message processing
+- **Note:** No `Count` property is truly safe—it's a snapshot and may change immediately after reading
+
+## 2. **ConcurrentStack<T>**
+- **Thread-safe LIFO stack**
+- **Key methods:** `Push(item)`, `TryPop(out item)`, `TryPeek(out item)`
+- **Use case:** Work-stealing algorithms, temporary storage, undo operations
+- **Note:** Same as queue—`Count` is a snapshot
+
+## 3. **ConcurrentBag<T>**
+- **Thread-safe unordered collection**
+- **Key methods:** `Add(item)`, `TryTake(out item)`, `TryPeek(out item)`
+- **Use case:** When order doesn't matter, parallel aggregation, temporary storage
+- **Special feature:** Optimized for scenarios where the same thread that adds items also removes them (thread-local storage optimization)
+- **Caveat:** Enumeration is slow and creates a snapshot
+
+## 4. **BlockingCollection<T>**
+- **Thread-safe collection with blocking operations**
+- **Key methods:** `Add(item)`, `Take()`, `TryAdd()`, `TryTake()`, `CompleteAdding()`
+- **Use case:** Classic producer-consumer with blocking, bounded queues
+- **Special feature:** Can block when empty (consumer waits) or full (producer waits)
+- **Wraps:** Can wrap any `IProducerConsumerCollection<T>` (e.g., ConcurrentQueue, ConcurrentStack)
+- **Bounded capacity:** Can limit max size with `new BlockingCollection<T>(boundedCapacity)`
+
+---
+
+## Key Differences Summary
+
+| Collection | Order | Best For | Blocking? |
+|-----------|-------|----------|-----------||
+| ConcurrentQueue | FIFO | Task queues, messages | ❌ No |
+| ConcurrentStack | LIFO | Work-stealing, undo | ❌ No |
+| ConcurrentBag | Unordered | Parallel aggregation | ❌ No |
+| BlockingCollection | Depends on wrapper | Producer-consumer | ✅ Yes |
+| ConcurrentDictionary | Key-based | Caches, lookups | ❌ No |
+
+---
+
+## Common Patterns and Gotchas
+
+### 1. **Don't trust `Count` property**
+```csharp
+// BAD - Count can change between check and dequeue
+if (queue.Count > 0)
+    queue.TryDequeue(out var item); // May fail!
+
+// GOOD - Just try to dequeue
+if (queue.TryDequeue(out var item))
+{
+    // Process item
+}
+```
+
+### 2. **Use `TryXxx` methods**
+All concurrent collections use `TryDequeue`, `TryPop`, `TryTake`, etc., which return `bool` to indicate success. Never assume success.
+
+### 3. **BlockingCollection for producer-consumer**
+```csharp
+var queue = new BlockingCollection<int>(boundedCapacity: 100);
+
+// Producer
+Task.Run(() => {
+    for (int i = 0; i < 1000; i++)
+        queue.Add(i); // Blocks if queue is full
+    queue.CompleteAdding();
+});
+
+// Consumer
+Task.Run(() => {
+    foreach (var item in queue.GetConsumingEnumerable())
+        ProcessItem(item); // Blocks if queue is empty
+});
+```
+
+### 4. **ConcurrentBag is NOT a thread-safe List**
+- No indexing, no ordering guarantees
+- Best when the same thread adds and removes
+- Use ConcurrentQueue or BlockingCollection if you need FIFO
+
+---
+
+## When to Use Each
+
+- **ConcurrentQueue:** Task scheduling, message queues, event processing
+- **ConcurrentStack:** Undo/redo, work-stealing, temporary buffering
+- **ConcurrentBag:** Parallel aggregation (e.g., `Parallel.ForEach` collecting results)
+- **BlockingCollection:** Classic producer-consumer with backpressure and signaling
+- **ConcurrentDictionary:** Shared caches, registries, counters
+
+---
+
+## The Golden Rule (Same as ConcurrentDictionary)
+
+**Individual operations are thread-safe. Your multi-step logic is not.**
+
+Even with concurrent collections, you must avoid check-then-act patterns. Use atomic operations or external synchronization (locks, semaphores) when needed.
