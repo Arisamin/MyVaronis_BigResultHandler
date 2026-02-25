@@ -23,9 +23,11 @@ This file lists all documents and major files in the workspace, organized by fol
 - architecture-diagram.html
 - ARCHITECTURE.md
 - architecture.mermaid
-- Catching up with AI IDE (recently added)
+- Catching up with AI IDE stub
+- How ResultHandler Improved The Old Solution.md
 - CRASH_RECOVERY.md
 - CRITICAL_ARCHITECTURE_QUESTIONS.md
+- CSharp_Basics.md
 - General Architecture questions.md
 - INTERVIEW_QUESTIONS.html
 - INTERVIEW_QUESTIONS.md
@@ -36,12 +38,14 @@ This file lists all documents and major files in the workspace, organized by fol
 - STATE_MACHINE_LLD.md
 - TPLvsRX/
 - Varonis projects
-- CSharp_Basics.md (recently added)
-- concurrent data structures.md (recently added)
+- concurrent data structures.md
+- buzzwords_and_services.md
 
 ## Positions
-- Preparation For Semperis.md (recently added)
-- Preparation for mPrest (recently added)
+- Preparation for Commbox.md
+- Preparation for Mastercard.md
+- Preparation For Semperis.md
+- Preparation for mPrest
 
 ### docs/TPLvsRX
 - Reactive vs TPL handling in RabbitMQ messages.md

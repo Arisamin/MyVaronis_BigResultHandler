@@ -14,6 +14,7 @@
 - `docs/` — Technical documentation and design files:
   - `ARCHITECTURE.md`: High-level and component architecture of BigResultHandler
   - `architecture-diagram.html`/`architecture.mermaid`: Visual diagrams of system architecture
+  - `How ResultHandler Improved The Old Solution.md`: Evolution from legacy system to multi-message architecture
   - `CRASH_RECOVERY.md`: Crash recovery design and mechanisms
   - `CRITICAL_ARCHITECTURE_QUESTIONS.md`: Open and resolved architecture questions
   - `RESULT_HANDLER_LLD.md`: Low-level design for the ResultHandler class
@@ -44,6 +45,7 @@
 - **Logic_Programming_Interview_Questions.md**: Classic logic and programming interview questions, with space for your answers.
 - **ARCHITECTURE.md**: Explains the overall system design, major components, and their interactions in BigResultHandler.
 - **architecture-diagram.html** / **architecture.mermaid**: Visual diagrams to help understand the system at a glance.
+- **How ResultHandler Improved The Old Solution.md**: Documents the evolution from the legacy single-message system (250 GB limit) to the new multi-message architecture (unlimited scale).
 - **CRASH_RECOVERY.md**: Details the crash recovery strategy, ensuring data integrity and service reliability.
 - **CRITICAL_ARCHITECTURE_QUESTIONS.md**: Tracks open and resolved questions from design reviews, documenting key decisions.
 - **RESULT_HANDLER_LLD.md**: In-depth technical design for the ResultHandler, including message processing and storage.
