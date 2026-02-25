@@ -582,6 +582,145 @@ These questions explore code-level techniques, patterns, and design consideratio
 
 ---
 
+## **6. Horizontal Scale-Out & Transaction Affinity** ⚠️ UNRESOLVED
+
+**Critical Issue:** The current design lacks explicit mechanisms for horizontal scale-out while maintaining consistency.
+
+### Current Constraint: Implicit Transaction Affinity
+
+The system achieves **transaction isolation** through per-transaction RabbitMQ queues, but this creates **implicit affinity**:
+
+1. **StateMachine creates queues**: `transaction-{ID}-header` and `transaction-{ID}-payload`
+2. **Producer sends messages** to those specific queues
+3. **Only the StateMachine instance that created the queues can consume from them**
+4. **Messages automatically arrive at the correct instance** (no routing needed)
+
+### The Problem: Six Scalability Obstacles
+
+#### **1. Single Instance per Transaction**
+- Each transaction processed by exactly one instance
+- Large transactions create hotspots; cannot distribute a single transaction across instances
+- Limits throughput for individual transactions to single-machine capacity
+
+#### **2. Broker Affinity**
+- Transaction queues created on a specific RabbitMQ broker
+- Producers must know which broker has which transaction's queues
+- No automatic broker failover; broker failure halts that transaction
+
+#### **3. Instance Failure = Transaction Orphaning**
+- When an instance crashes mid-transaction, its queues are abandoned
+- No automatic reassignment mechanism; messages accumulate in orphaned queues
+- KV Store has recovery data, but no orchestrator to detect and reassign
+
+#### **4. No Central Transaction Registry**
+- No authoritative source of: "Which instance owns which transaction?"
+- No tracking of: "Which broker has which transaction's queues?"
+- On startup, new instances cannot autonomously recover failed transactions
+
+#### **5. Memory Coupling via RabbitMQ Prefetch**
+- Instance memory usage tied to prefetch settings and message sizes
+- Large payload messages (250 MB) with high prefetch create memory spikes
+- Each instance has practical limits; vertical scaling becomes expensive
+
+#### **6. Producer Topology Coupling**
+- Producer must construct queue names and potentially know broker addresses
+- Tight coupling between application logic and infrastructure topology
+- Hard to change broker layout or rebalance transactions
+
+### Root Causes
+
+**Design decisions that created these constraints:**
+1. **Per-transaction queue naming** - Provides isolation but creates implicit affinity
+2. **StateMachine creates queues** - Simple per-transaction setup, but failure orphans queues
+3. **Single broker assumption** - No built-in inter-broker coordination
+
+### Current Scalability Profile
+
+✅ **Scales Well:**
+- Many independent transactions (horizontal scaling at transaction level)
+- Transaction message count (multi-message support via payloads)
+- Total data size (unlimited via streaming)
+
+❌ **Does Not Scale:**
+- Single large transaction across instances (bottlenecked to one instance)
+- Broker failures (no automatic failover)
+- Instance failures (manual recovery required)
+
+### Questions Needing Resolution
+
+1. **How should instances be assigned to transactions?**
+   - Sticky assignment? (affinity to same instance per transaction)
+   - Dynamic? (reassign on each message)
+   - Pool-based? (instance pool with central coordinator)
+
+2. **Where should transaction ownership be tracked?**
+   - Central registry database?
+   - Distributed coordinator?
+   - KV Store alongside transaction state?
+
+3. **How should failover work?**
+   - Automatic detection and reassignment?
+   - Manual RUNBOOK-based recovery?
+   - Third-party orchestrator (Kubernetes, etc.)?
+
+4. **Should we use RabbitMQ Clustering?**
+   - Simplifies broker HA but doesn't solve instance affinity
+   - Adds operational complexity (clustering, mirror management)
+   - Cost/benefit for this use case?
+
+5. **Alternative: Move to shared queues with routing?**
+   - Lose per-transaction isolation
+   - Centralize routing logic
+   - Easier failover but loses elegant queue-naming approach
+
+### Potential Solutions (Unimplemented)
+
+**Option A: Central Transaction Registry + Failover Coordinator**
+- Database maps: `TransactionID → (Broker, QueueNames, AssignedInstance, Status)`
+- Coordinator detects crashes and reassigns orphaned transactions
+- Producer queries registry before sending
+- **Pro:** Explicit control, observable state
+- **Con:** Additional service, complexity, latency
+
+**Option B: RabbitMQ Cluster + Queue Mirroring**
+- Replicate queues across cluster nodes
+- Automatic broker failover via mirror promotion
+- **Pro:** Built-in HA, less custom code
+- **Con:** Doesn't solve instance affinity, operational overhead
+
+**Option C: Shared Queues with Routing Service**
+- Move away from per-transaction queues
+- Central routing directs messages to correct instance
+- **Pro:** Cleaner failover, standard patterns
+- **Con:** Loses isolation, adds routing latency
+
+**Option D: Hybrid (Most Realistic)**
+- Central registry for transaction tracking
+- RabbitMQ cluster for broker HA
+- Instance pool with stateless coordination
+- Sticky sessions during normal operation
+- Failover coordinator for crash recovery
+- **Pro:** Resilient, reasonable scalability
+- **Con:** Moderate complexity, operational overhead
+
+### Related Documentation
+
+- **RabbitMQ Fundamentals Guide.md** - Explains broker, queue, cluster concepts
+- **CRASH_RECOVERY.md** - Current recovery mechanisms (manual, KV Store-based)
+- **STATE_MACHINE_LLD.md** - Transaction initialization and lifecycle
+
+### Why This Matters
+
+This is the foundation for the todo: **"Document transaction affinity options"**
+
+Understanding these obstacles is critical for:
+- Designing resilient systems (failover, recovery)
+- System design interviews (scalability, trade-offs)
+- Operational planning (HA, disaster recovery)
+- Future architecture improvements
+
+---
+
 ## **Next Steps:**
 
 1. Review and answer each question in this document
@@ -590,5 +729,6 @@ These questions explore code-level techniques, patterns, and design consideratio
 4. Document error handling and recovery procedures
 5. Create KV Store schema reference
 6. Add concurrency and synchronization documentation
-7. Conduct architecture review session with team
-8. Document implementation details and design patterns (lower priority)
+7. **Conduct transaction affinity design session** (priority)
+8. Implement chosen transaction affinity strategy
+9. Document implementation details and design patterns (lower priority)

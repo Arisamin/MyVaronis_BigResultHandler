@@ -15,8 +15,9 @@
   - `ARCHITECTURE.md`: High-level and component architecture of BigResultHandler
   - `architecture-diagram.html`/`architecture.mermaid`: Visual diagrams of system architecture
   - `How ResultHandler Improved The Old Solution.md`: Evolution from legacy system to multi-message architecture
+  - `RabbitMQ Fundamentals Guide.md`: Understanding RabbitMQ concepts (broker, queue, cluster) and transaction affinity in the design
   - `CRASH_RECOVERY.md`: Crash recovery design and mechanisms
-  - `CRITICAL_ARCHITECTURE_QUESTIONS.md`: Open and resolved architecture questions
+  - `CRITICAL_ARCHITECTURE_QUESTIONS.md`: Resolved and unresolved architecture questions, including design trade-offs and scalability obstacles
   - `RESULT_HANDLER_LLD.md`: Low-level design for the ResultHandler class
   - `STATE_MACHINE_LLD.md`: Low-level design for the StateMachine and transaction flow
   - `Varonis projects`: List and summary of Varonis project modules and features
@@ -46,8 +47,9 @@
 - **ARCHITECTURE.md**: Explains the overall system design, major components, and their interactions in BigResultHandler.
 - **architecture-diagram.html** / **architecture.mermaid**: Visual diagrams to help understand the system at a glance.
 - **How ResultHandler Improved The Old Solution.md**: Documents the evolution from the legacy single-message system (250 GB limit) to the new multi-message architecture (unlimited scale).
+- **RabbitMQ Fundamentals Guide.md**: Explains RabbitMQ concepts (broker, queue, exchange, cluster) and how transaction-specific queue naming enables implicit routing while creating scalability constraints.
 - **CRASH_RECOVERY.md**: Details the crash recovery strategy, ensuring data integrity and service reliability.
-- **CRITICAL_ARCHITECTURE_QUESTIONS.md**: Tracks open and resolved questions from design reviews, documenting key decisions.
+- **CRITICAL_ARCHITECTURE_QUESTIONS.md**: Comprehensive documentation of resolved architecture questions (message routing, lifecycle, queue consumers), unresolved design challenges (transaction initialization, polling vs. events, concurrency), six scalability obstacles preventing horizontal scale-out, and recommended architectural improvements.
 - **RESULT_HANDLER_LLD.md**: In-depth technical design for the ResultHandler, including message processing and storage.
 - **STATE_MACHINE_LLD.md**: Technical design for the state machine that coordinates transaction processing and recovery.
 - **Varonis projects**: Summarizes the main modules and features developed for Varonis, useful for interviews and CV context.

@@ -25,8 +25,9 @@ This file lists all documents and major files in the workspace, organized by fol
 - architecture.mermaid
 - Catching up with AI IDE stub
 - How ResultHandler Improved The Old Solution.md
+- RabbitMQ Fundamentals Guide.md
 - CRASH_RECOVERY.md
-- CRITICAL_ARCHITECTURE_QUESTIONS.md
+- CRITICAL_ARCHITECTURE_QUESTIONS.md: Resolved/unresolved architecture questions including 6 scalability obstacles and design trade-offs
 - CSharp_Basics.md
 - General Architecture questions.md
 - INTERVIEW_QUESTIONS.html
