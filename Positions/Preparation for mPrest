@@ -114,7 +114,7 @@ Reference types are types that are created on the stack when declared in the cod
 
 A: Passing a reference type to a method normally allows the method to modify the object's data, and those changes are visible outside the method. However, if the method assigns a new object to the parameter, this change is local to the method—the original reference outside the method remains unchanged.
 
-**Q: How does garbage collection work in .NET? When is an object eligible for collection?**
+**Q: How does garbage collection work in .NET? When is an object eligible for collection?** [#GrabageColelction #GC]
 
 A: .NET GC uses three generations: Gen 0 (new/short-lived), Gen 1 (medium-lived), Gen 2 (long-lived/large objects). New objects are allocated in Gen 0 (unless large, then Gen 2/LOH). Surviving objects are promoted to higher generations and may be moved in memory (except large objects, which are not compacted). An object is eligible for collection when it is unreachable from any live code (roots). Finalization, if present, adds extra work to the GC cycle. The GC is non-deterministic and collections occur as needed for memory management and performance.
 
