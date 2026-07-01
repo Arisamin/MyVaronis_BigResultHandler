@@ -1,17 +1,20 @@
 graph LR
     RS["Rule Service"]
     OP["On-Prem Service"]
-    AZ[("Azure Storage")]
-    NQ[("Notification Queue")]
 
     TH[("Q3\nSmall RMQ\nInstruction Header")]
     TP[("Q4\nLarge RMQ\nInstruction Chunks")]
 
-    subgraph CS_GRP["Cloud Service"]
+    subgraph SCOPE["[ BigResultHandler — Deep Dive ]"]
         CS["Cloud Service"]
         FH[("Q1\nSmall RMQ\nResult Header")]
         FP[("Q2\nLarge RMQ\nResult Chunks")]
     end
+
+    AZ[("Azure Storage")]
+    NQ[("Notification Queue")]
+
+    AZ ~~~ NQ
 
     RS -->|"Instruction Blob URI\n+ Notification Queue Name"| CS
     CS -->|"Read instruction blob"| AZ
@@ -28,7 +31,7 @@ graph LR
     style OP fill:#e8daef,stroke:#8e44ad,stroke-width:2px
     style AZ fill:#d6eaf8,stroke:#2471a3,stroke-width:2px
     style NQ fill:#d5f5e3,stroke:#27ae60,stroke-width:2px
-    style CS_GRP fill:#fff3e0,stroke:#e67e22,stroke-width:2px
+    style SCOPE fill:#fff8e1,stroke:#888,stroke-width:1.5px,stroke-dasharray:6 4
     style FH fill:#fffde7,stroke:#f39c12,stroke-width:1px
     style FP fill:#fffde7,stroke:#f39c12,stroke-width:1px
     style TH fill:#fef9e7,stroke:#d4ac0d,stroke-width:1px
