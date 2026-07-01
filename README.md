@@ -31,6 +31,10 @@
 - `Positions/` — Preparation files for interviews:
   - `Preparation For Semperis.md`
   - `Preparation for mPrest`
+
+## Resources
+
+- [סימולטור משרד העבודה](https://www.labor-shovarim.co.il/?CategoryID=256&ArticleID=140) — Ministry of Labor course simulator
 - `git-push.bat`: Helper script for git operations
 - `Workspace_Document_Map.md`: Index of all workspace documents
 
@@ -56,6 +60,29 @@
 - **INTERVIEW_QUESTIONS.md** / **INTERVIEW_QUESTIONS.txt**: Prepares you for technical interviews by listing likely questions and detailed answers about the system.
 - **concurrent data structures.md**: Comprehensive guide to ConcurrentDictionary and other concurrent data structures in C#, including thread-safety patterns, common pitfalls, and usage guidelines.
 - **TPLvsRX/**: Contains markdown and code files comparing Rx Subject and TPL Dataflow approaches for message handling, with pros/cons and code samples.
+
+## Product Background
+
+### What is the product?
+The ResultHandler is a core component of Varonis's **Global Permissions Remediation** feature — a data security product that automatically eliminates overly permissive access on enterprise file servers.
+
+### What problem does it solve?
+Enterprise file servers often have folders and files where access is granted to global security groups like **Everyone**, **Domain Users**, or **Authenticated Users**. This effectively means any employee can access those resources, which is a data security risk.
+
+### How the product works
+1. A customer selects a **storage root** (a file server share or drive) to remediate.
+2. The system requires a minimum period of **access event monitoring** before that storage is eligible — so it has enough history to make sound decisions.
+3. The product **scans all files and folders** under the root and identifies resources with global permissions.
+4. For each globally-permissioned resource, it reviews **who actually accessed it** based on collected event history.
+5. It checks whether those real users already have access via a specific, non-global group:
+   - **If yes** — remove the global permission (those users are already covered).
+   - **If no** — create a dedicated security group for those users, grant it access, then remove the global permission.
+6. End result: no resource remains globally accessible, and no legitimate user loses their access.
+
+### Where ResultHandler fits
+The scan phase is computationally heavy and produces large volumes of per-file analysis results. For large storage roots (tens of millions of files), this data cannot fit in a single broker message. **ResultHandler** is the component that receives these results broken into multiple payload messages, assembles them reliably with crash recovery and idempotent reprocessing, and triggers the downstream permission commit operations.
+
+---
 
 ## Motivation
 

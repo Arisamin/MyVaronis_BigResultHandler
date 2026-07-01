@@ -1,0 +1,37 @@
+sequenceDiagram
+    participant RS as Rule Service
+    participant CS as Cloud Service
+    participant OP as On-Prem Service
+    participant AZ as Azure Blob Storage
+
+    RS->>CS: Remediation request (instruction blob URL)
+    Note over CS: Creates Transaction + State Machine
+    Note over CS: ── State 0: Request Forwarding ──
+
+    CS->>OP: Header: instruction series manifest (small-msg RMQ)
+    CS->>OP: Instruction chunks (large-msg RMQ)
+    Note over OP: Reconstructs work order from chunks
+
+    Note over OP: Executes remediation on file system
+    Note over OP: Modifies permissions, creates AD groups
+    Note over OP: Tracks: folders, files, groups affected
+    Note over CS: ── State 1: Awaiting Results ──
+
+    OP->>CS: Header: result series manifest (small-msg RMQ)
+    Note over CS: Knows exactly what is coming:<br/>which series, TotalCount per series
+    OP->>CS: Result chunks — Folders series (large-msg RMQ)
+    OP->>CS: Result chunks — Files series (large-msg RMQ)
+    OP->>CS: Result chunks — Groups series (large-msg RMQ)
+
+    loop For each chunk received
+        CS->>AZ: Stream chunk → upload as blob
+        AZ-->>CS: Blob URI
+        Note over CS: URI stored in Table Storage<br/>key: TransactionId + SeriesType + Ordinal
+    end
+
+    Note over CS: All series complete (all ordinals accounted for)
+    Note over CS: ── State 2: Sending Completion ──
+
+    Note over CS: Result Assembler collects ordered<br/>URI lists per series from Table Storage
+    CS->>RS: Notification: ordered blob URIs per series<br/>(Folders list, Files list, Groups list)
+    Note over RS: Downloads chunks in order,<br/>reassembles full result files
