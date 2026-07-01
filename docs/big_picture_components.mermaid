@@ -1,18 +1,16 @@
 graph LR
     RS["Rule Service"]
-    CS["Cloud Service"]
     OP["On-Prem Service"]
     AZ[("Azure Storage")]
     NQ[("Notification Queue")]
 
-    subgraph TO["To Flow — Cloud → On-Prem"]
-        TH[("Small RMQ\nInstruction Header")]
-        TP[("Large RMQ\nInstruction Chunks")]
-    end
+    TH[("Q3\nSmall RMQ\nInstruction Header")]
+    TP[("Q4\nLarge RMQ\nInstruction Chunks")]
 
-    subgraph FROM["From Flow — On-Prem → Cloud"]
-        FH[("Small RMQ\nResult Header")]
-        FP[("Large RMQ\nResult Chunks")]
+    subgraph CS_GRP["Cloud Service"]
+        CS["Cloud Service"]
+        FH[("Q1\nSmall RMQ\nResult Header")]
+        FP[("Q2\nLarge RMQ\nResult Chunks")]
     end
 
     RS -->|"Instruction Blob URI\n+ Notification Queue Name"| CS
@@ -30,5 +28,8 @@ graph LR
     style OP fill:#e8daef,stroke:#8e44ad,stroke-width:2px
     style AZ fill:#d6eaf8,stroke:#2471a3,stroke-width:2px
     style NQ fill:#d5f5e3,stroke:#27ae60,stroke-width:2px
-    style TO fill:#fffde7,stroke:#f39c12,stroke-width:1px
-    style FROM fill:#fef9e7,stroke:#d4ac0d,stroke-width:1px
+    style CS_GRP fill:#fff3e0,stroke:#e67e22,stroke-width:2px
+    style FH fill:#fffde7,stroke:#f39c12,stroke-width:1px
+    style FP fill:#fffde7,stroke:#f39c12,stroke-width:1px
+    style TH fill:#fef9e7,stroke:#d4ac0d,stroke-width:1px
+    style TP fill:#fef9e7,stroke:#d4ac0d,stroke-width:1px
