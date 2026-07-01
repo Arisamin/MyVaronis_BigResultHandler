@@ -1,0 +1,48 @@
+graph TB
+    RS(["Rule Service"])
+
+    subgraph CS["Cloud Service"]
+        SM["State Machine\n(per transaction)"]
+
+        subgraph S1["State 1 — Awaiting Results"]
+            BRH["BigResultHandler"]
+        end
+
+        subgraph S2["State 2 — Sending Completion"]
+            RA["Result Assembler"]
+            NS["Notification Sender"]
+            RA --> NS
+        end
+
+        SM --> BRH
+        BRH --> RA
+    end
+
+    subgraph OP["On-Prem Service"]
+        ENG["Execution Engine\n(remediate + track results)"]
+    end
+
+    subgraph AZ["Azure Storage"]
+        BLOB[("Blob Storage")]
+        KV[("Table Storage\nKV Store")]
+    end
+
+    RS -->|"Request + instruction blob URL"| SM
+    SM -->|"Header + instruction chunks\nsmall-msg RMQ / large-msg RMQ"| ENG
+    ENG -->|"Result series manifest\n(small-msg RMQ)"| BRH
+    ENG -->|"Result chunks — Folders, Files, Groups\n(large-msg RMQ)"| BRH
+    BRH -->|"Stream chunk → blob"| BLOB
+    BRH -->|"Write URI\nkey: TransactionId + SeriesType + Ordinal"| KV
+    RA -->|"Read ordered URI lists per series"| KV
+    NS -->|"Notification: blob URLs per series"| RS
+
+    style RS fill:#d4e6f1,stroke:#2980b9
+    style SM fill:#fdebd0,stroke:#e67e22
+    style BRH fill:#fdebd0,stroke:#e67e22
+    style RA fill:#d5f5e3,stroke:#27ae60
+    style NS fill:#d5f5e3,stroke:#27ae60
+    style ENG fill:#e8daef,stroke:#8e44ad
+    style BLOB fill:#d6eaf8,stroke:#2471a3
+    style KV fill:#d6eaf8,stroke:#2471a3
+    style S1 fill:#fffde7,stroke:#f39c12,stroke-width:2px
+    style S2 fill:#eafaf1,stroke:#27ae60,stroke-width:2px
