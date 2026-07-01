@@ -1,48 +1,34 @@
-graph TB
-    RS(["Rule Service"])
+graph LR
+    RS["Rule Service"]
+    CS["Cloud Service"]
+    OP["On-Prem Service"]
+    AZ[("Azure Storage")]
+    NQ[("Notification Queue")]
 
-    subgraph CS["Cloud Service"]
-        SM["State Machine\n(per transaction)"]
-
-        subgraph S1["State 1 — Awaiting Results"]
-            BRH["BigResultHandler"]
-        end
-
-        subgraph S2["State 2 — Sending Completion"]
-            RA["Result Assembler"]
-            NS["Notification Sender"]
-            RA --> NS
-        end
-
-        SM --> BRH
-        BRH --> RA
+    subgraph TO["To Flow — Cloud → On-Prem"]
+        TH[("Small RMQ\nInstruction Header")]
+        TP[("Large RMQ\nInstruction Chunks")]
     end
 
-    subgraph OP["On-Prem Service"]
-        ENG["Execution Engine\n(remediate + track results)"]
+    subgraph FROM["From Flow — On-Prem → Cloud"]
+        FH[("Small RMQ\nResult Header")]
+        FP[("Large RMQ\nResult Chunks")]
     end
 
-    subgraph AZ["Azure Storage"]
-        BLOB[("Blob Storage")]
-        KV[("Table Storage\nKV Store")]
-    end
+    RS -->|"Instruction Blob URI\n+ Notification Queue Name"| CS
+    CS -->|"Read instruction blob"| AZ
+    CS --> TH & TP
+    TH & TP --> OP
+    OP --> FH & FP
+    FH & FP --> CS
+    CS -->|"Write result blobs"| AZ
+    CS -->|"Result blob URIs"| NQ
+    NQ -->|"Notification"| RS
 
-    RS -->|"Request + instruction blob URL"| SM
-    SM -->|"Header + instruction chunks\nsmall-msg RMQ / large-msg RMQ"| ENG
-    ENG -->|"Result series manifest\n(small-msg RMQ)"| BRH
-    ENG -->|"Result chunks — Folders, Files, Groups\n(large-msg RMQ)"| BRH
-    BRH -->|"Stream chunk → blob"| BLOB
-    BRH -->|"Write URI\nkey: TransactionId + SeriesType + Ordinal"| KV
-    RA -->|"Read ordered URI lists per series"| KV
-    NS -->|"Notification: blob URLs per series"| RS
-
-    style RS fill:#d4e6f1,stroke:#2980b9
-    style SM fill:#fdebd0,stroke:#e67e22
-    style BRH fill:#fdebd0,stroke:#e67e22
-    style RA fill:#d5f5e3,stroke:#27ae60
-    style NS fill:#d5f5e3,stroke:#27ae60
-    style ENG fill:#e8daef,stroke:#8e44ad
-    style BLOB fill:#d6eaf8,stroke:#2471a3
-    style KV fill:#d6eaf8,stroke:#2471a3
-    style S1 fill:#fffde7,stroke:#f39c12,stroke-width:2px
-    style S2 fill:#eafaf1,stroke:#27ae60,stroke-width:2px
+    style RS fill:#d4e6f1,stroke:#2980b9,stroke-width:2px
+    style CS fill:#fdebd0,stroke:#e67e22,stroke-width:2px
+    style OP fill:#e8daef,stroke:#8e44ad,stroke-width:2px
+    style AZ fill:#d6eaf8,stroke:#2471a3,stroke-width:2px
+    style NQ fill:#d5f5e3,stroke:#27ae60,stroke-width:2px
+    style TO fill:#fffde7,stroke:#f39c12,stroke-width:1px
+    style FROM fill:#fef9e7,stroke:#d4ac0d,stroke-width:1px
